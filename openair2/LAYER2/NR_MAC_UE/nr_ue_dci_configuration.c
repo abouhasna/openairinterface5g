@@ -107,9 +107,11 @@ void config_dci_pdu(NR_UE_MAC_INST_t *mac,
   const int coreset_id = *ss->controlResourceSetId;
   NR_ControlResourceSet_t *coreset;
   if(coreset_id > 0) {
+    LOG_E(NR_MAC, "CORESET>0 (%d)\n",coreset_id); //Abdallah Abou Hasna
     coreset = ue_get_coreset(mac, coreset_id);
     rel15->coreset.CoreSetType = NFAPI_NR_CSET_CONFIG_PDCCH_CONFIG;
   } else {
+    LOG_E(NR_MAC, "CORESET=%d and SS = %d\n", coreset_id, ss->searchSpaceId); //Abdallah Abou Hasna
     coreset = mac->coreset0;
     rel15->coreset.CoreSetType = NFAPI_NR_CSET_CONFIG_MIB_SIB1;
   }
@@ -465,6 +467,7 @@ void ue_dci_configuration(NR_UE_MAC_INST_t *mac, fapi_nr_dl_config_request_t *dl
     // PDCCH monitoring occasions for SI message reception in SI-window
     // are same as PDCCH monitoring occasions for SIB1
     const NR_SearchSpace_t *ss = mac->otherSI_SS ? mac->otherSI_SS : mac->search_space_zero;
+    LOG_E(NR_MAC, "mac->get_otherSI_SS : %d\n", ss->searchSpaceId); //Abdallah Abou Hasna
     // TODO configure SI-window
     if (monitior_dci_for_other_SI(mac, ss, slots_per_frame, frame, slot)) {
       LOG_D(NR_MAC, "Monitoring DCI for other SIs in frame %d slot %d\n", frame, slot);

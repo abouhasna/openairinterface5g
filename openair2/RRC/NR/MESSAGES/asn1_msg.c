@@ -200,7 +200,7 @@ uint8_t do_SIB23_NR(rrc_gNB_carrier_data_t *carrier,
                     gNB_RrcConfigurationReq *configuration) {
   asn_enc_rval_t enc_rval;
   SystemInformation_IEs__sib_TypeAndInfo__Member *sib2 = NULL;
-  SystemInformation_IEs__sib_TypeAndInfo__Member *sib3 = NULL;
+  //SystemInformation_IEs__sib_TypeAndInfo__Member *sib3 = NULL; Abdallah Abou hasna
 
   NR_BCCH_DL_SCH_Message_t *sib_message = CALLOC(1,sizeof(NR_BCCH_DL_SCH_Message_t));
   sib_message->message.present = NR_BCCH_DL_SCH_MessageType_PR_c1;
@@ -225,10 +225,10 @@ uint8_t do_SIB23_NR(rrc_gNB_carrier_data_t *carrier,
   sib2->choice.sib2->intraFreqCellReselectionInfo.deriveSSB_IndexFromCell = true;
   asn1cSeqAdd(&ies->sib_TypeAndInfo.list, sib2);
 
-  sib3 = CALLOC(1, sizeof(SystemInformation_IEs__sib_TypeAndInfo__Member));
-  sib3->present = NR_SystemInformation_IEs__sib_TypeAndInfo__Member_PR_sib3;
-  sib3->choice.sib3 = CALLOC(1, sizeof(struct NR_SIB3));
-  asn1cSeqAdd(&ies->sib_TypeAndInfo.list, sib3);
+  // sib3 = CALLOC(1, sizeof(SystemInformation_IEs__sib_TypeAndInfo__Member));
+  // sib3->present = NR_SystemInformation_IEs__sib_TypeAndInfo__Member_PR_sib3;
+  // sib3->choice.sib3 = CALLOC(1, sizeof(struct NR_SIB3));
+  // asn1cSeqAdd(&ies->sib_TypeAndInfo.list, sib3); Abdallah Abou hasna
 
   //encode SIB to data
   // carrier->SIB23 = (uint8_t *) malloc16(128);

@@ -80,7 +80,7 @@ int CU_handle_F1_SETUP_REQUEST(instance_t instance,
                                uint32_t assoc_id,
                                uint32_t stream,
                                F1AP_F1AP_PDU_t *pdu) {
-  LOG_D(F1AP, "CU_handle_F1_SETUP_REQUEST\n");
+  LOG_D(F1AP, "CU_handle_F1_SETUP_REQUEST\n");//Abdallah Abou Hasna
   MessageDef                         *message_p;
   F1AP_F1SetupRequest_t              *container;
   F1AP_F1SetupRequestIEs_t           *ie;
@@ -269,6 +269,7 @@ int CU_handle_F1_SETUP_REQUEST(instance_t instance,
 
 int CU_send_F1_SETUP_RESPONSE(instance_t instance,
                               f1ap_setup_resp_t *f1ap_setup_resp) {
+  LOG_D(F1AP, "CU_send_F1_SETUP_RESPONSE\n");//Abdallah Abou Hasna
   instance_t enb_mod_idP;
   instance_t cu_mod_idP;
   // This should be fixed

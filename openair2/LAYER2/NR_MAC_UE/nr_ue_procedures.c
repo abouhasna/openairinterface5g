@@ -303,6 +303,7 @@ int8_t nr_ue_decode_BCCH_DL_SCH(module_id_t module_id,
   NR_UE_MAC_INST_t *mac = get_mac_inst(module_id);
   if(ack_nack) {
     LOG_D(NR_MAC, "Decoding NR-BCCH-DL-SCH-Message (SIB1 or SI)\n");
+    LOG_A(NR_RRC, "acknack is true and trying to decode sib message\n"); //Abdallah Abou Hasna
     nr_mac_rrc_data_ind_ue(module_id, cc_id, gNB_index, 0, 0, 0, NR_BCCH_DL_SCH, (uint8_t *) pduP, pdu_len);
     mac->get_sib1 = false;
     mac->get_otherSI = false;
@@ -405,6 +406,7 @@ int8_t nr_ue_process_dci(module_id_t module_id, int cc_id, uint8_t gNB_index, fr
 
   uint16_t rnti = dci_ind->rnti;
   int coreset_type = dci_ind->coreset_type == NFAPI_NR_CSET_CONFIG_PDCCH_CONFIG; // 0 for coreset0, 1 otherwise
+  LOG_E(MAC, "In %s: Processing DCI indication for rnti %x, coreset_type %d\n", __FUNCTION__, rnti, coreset_type);//Abdallah Abou Hasna
   nr_dci_format_t dci_format = dci_ind->dci_format;
   int ret = 0;
   int pucch_res_set_cnt = 0, valid = 0;
@@ -628,7 +630,7 @@ int8_t nr_ue_process_dci(module_id_t module_id, int cc_id, uint8_t gNB_index, fr
         dl_config->dl_config_list[dl_config->number_pdus].pdu_type = FAPI_NR_DL_CONFIG_TYPE_DLSCH;
       }
     }
-
+    LOG_E(MAC, "In %s: dlsch_config_pdu_1_0->BWPSize %d, dlsch_config_pdu_1_0->BWPStart %d\n", __FUNCTION__, dlsch_config_pdu_1_0->BWPSize, dlsch_config_pdu_1_0->BWPStart);//Abdallah Abou Hasna
     /* IDENTIFIER_DCI_FORMATS */
     /* FREQ_DOM_RESOURCE_ASSIGNMENT_DL */
     if (nr_ue_process_dci_freq_dom_resource_assignment(NULL,dlsch_config_pdu_1_0,0,dlsch_config_pdu_1_0->BWPSize,dci->frequency_domain_assignment.val) < 0) {
@@ -646,7 +648,7 @@ int8_t nr_ue_process_dci(module_id_t module_id, int cc_id, uint8_t gNB_index, fr
 
     dlsch_config_pdu_1_0->number_symbols = tda_info.nrOfSymbols;
     dlsch_config_pdu_1_0->start_symbol = tda_info.startSymbolIndex;
-
+    LOG_E(MAC, "In %s: dlsch_config_pdu_1_0->number_symbols %d, dlsch_config_pdu_1_0->start_symbol %d, tda_info.k2 %ld, tda_info.mapping_type %d\n", __FUNCTION__, dlsch_config_pdu_1_0->number_symbols, dlsch_config_pdu_1_0->start_symbol, tda_info.k2,tda_info.mapping_type);//Abdallah Abou Hasna
     struct NR_DMRS_DownlinkConfig *dl_dmrs_config = NULL;
     if (pdsch_config)
       dl_dmrs_config = (tda_info.mapping_type == typeA) ?
@@ -701,6 +703,7 @@ int8_t nr_ue_process_dci(module_id_t module_id, int cc_id, uint8_t gNB_index, fr
                                                  dlsch_config_pdu_1_0->number_symbols,
                                                  nb_re_dmrs*get_num_dmrs(dlsch_config_pdu_1_0->dlDmrsSymbPos),
                                                  nb_rb_oh, 0, 1);
+    LOG_E(MAC, "In %s: dlsch_config_pdu_1_0->start_rb %d dlsch_config_pdu_1_0->number_rbs %d, dlsch_config_pdu_1_0->rb_offset %d\n", __FUNCTION__, dlsch_config_pdu_1_0->start_rb, dlsch_config_pdu_1_0->number_rbs, dlsch_config_pdu_1_0->rb_offset); //Abdallah Abou Hasna
 
     int bw_tbslbrm;
     if (current_DL_BWP->initial_BWPSize > 0)

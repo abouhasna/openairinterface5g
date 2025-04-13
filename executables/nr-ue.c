@@ -339,6 +339,7 @@ static void *NRUE_phy_stub_standalone_pnf_task(void *arg)
       mac->dl_info.dci_ind = NULL;
       mac->dl_info.rx_ind = NULL;
       nr_ue_dl_indication(&mac->dl_info);
+      LOG_E(NR_MAC, "call nr_ue_dl_indication in is_nr_DL_slot\n"); //Abdallah Abou Hasna
     }
 
     if (pthread_mutex_unlock(&mac->mutex_dl_info)) abort();
@@ -972,6 +973,7 @@ void init_NR_UE_threads(int nb_inst) {
     LOG_I(PHY,"Intializing UE Threads for instance %d (%p,%p)...\n",inst,PHY_vars_UE_g[inst],PHY_vars_UE_g[inst][0]);
     threadCreate(&threads[inst], UE_thread, (void *)UE, "UEthread", -1, OAI_PRIORITY_RT_MAX);
     if (!IS_SOFTMODEM_NOSTATS_BIT) {
+      LOG_A(NR_RRC, "init_NR_UE_threads\n"); //Abdallah Abou Hasna
       pthread_t stat_pthread;
       threadCreate(&stat_pthread, nrL1_UE_stats_thread, UE, "L1_UE_stats", -1, OAI_PRIORITY_RT_LOW);
     }

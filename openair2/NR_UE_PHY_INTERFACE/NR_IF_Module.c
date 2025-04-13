@@ -480,6 +480,8 @@ static void fill_rx_ind(nfapi_nr_pdu_t *pdu_list, fapi_nr_rx_indication_t *rx_in
     if (mac->ra.ra_state >= RA_SUCCEEDED && should_drop_transport_block(rx_ind->slot, mac->crnti))
     {
       ack_nack = false;
+      LOG_A(NR_RRC, "acknack is false in NR_IF_Module\n"); //Abdallah Abou Hasna
+      
     }
     rx_ind->rx_indication_body[pdu_idx].pdsch_pdu.ack_nack = ack_nack;
     rx_ind->rx_indication_body[pdu_idx].pdsch_pdu.pdu_length = length;
@@ -1113,6 +1115,8 @@ void update_harq_status(module_id_t module_id, uint8_t harq_pid, uint8_t ack_nac
     current_harq->ack = ack_nack;
     current_harq->ack_received = true;
     LOG_T(PHY,"Updating harq_status for harq_id %d,ack/nak %d\n",harq_pid,current_harq->ack);
+    LOG_A(PHY,"Updating harq_status for harq_id %d,ack/nak %d\n",harq_pid,current_harq->ack);//Abdallah Abou Hasna
+
   }
   else {
     //shouldn't get here

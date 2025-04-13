@@ -550,6 +550,8 @@ int nr_decode_SI(const module_id_t module_id, const uint8_t gNB_index, NR_System
 {
   NR_UE_RRC_SI_INFO *SI_info = &NR_UE_rrc_inst[module_id].SInfo[gNB_index];
   VCD_SIGNAL_DUMPER_DUMP_FUNCTION_BY_NAME( VCD_SIGNAL_DUMPER_FUNCTIONS_RRC_UE_DECODE_SI, VCD_FUNCTION_IN );
+  
+  LOG_A(NR_RRC, "decoding SIs\n"); //Abdallah Abou Hasna
 
   // Dump contents
   if (si->criticalExtensions.present == NR_SystemInformation__criticalExtensions_PR_systemInformation ||
@@ -564,6 +566,8 @@ int nr_decode_SI(const module_id_t module_id, const uint8_t gNB_index, NR_System
   for (int i = 0; i < si->criticalExtensions.choice.systemInformation->sib_TypeAndInfo.list.count; i++) {
     SystemInformation_IEs__sib_TypeAndInfo__Member *typeandinfo;
     typeandinfo = si->criticalExtensions.choice.systemInformation->sib_TypeAndInfo.list.array[i];
+
+    LOG_A(NR_RRC, "checking si list\n"); //Abdallah Abou Hasna
 
     switch(typeandinfo->present) {
       case NR_SystemInformation_IEs__sib_TypeAndInfo__Member_PR_sib2:
@@ -788,6 +792,9 @@ static int8_t nr_rrc_ue_decode_NR_BCCH_DL_SCH_Message(module_id_t module_id,
         }
         // configure default SI
         nr_rrc_configure_default_SI(SI_info, sib1);
+
+        LOG_A(NR_RRC, "SIB1 scheduling info: %d\n",SI_info->default_otherSI_map); //Abdallah Abou Hasna
+
         // configure timers and constant
         nr_rrc_set_sib1_timers_and_constants(&rrc->timers_and_constants, sib1);
         // take ServingCellConfigCommon and configure L1/L2

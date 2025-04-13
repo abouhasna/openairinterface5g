@@ -229,6 +229,8 @@ static void init_NR_SI(gNB_RRC_INST *rrc, gNB_RrcConfigurationReq *configuration
     nr_mac_config_sib1(RC.nrmac[rrc->module_id], sib1);
   }
 
+  if(NODE_IS_MONOLITHIC(rrc->node_type)) LOG_I(NR_RRC,"monolithic gNB\n"); //Abdallah Abou Hasna
+  
   if (!NODE_IS_DU(rrc->node_type)) {
     rrc->carrier.SIB23 = (uint8_t *) malloc16(100);
     AssertFatal(rrc->carrier.SIB23 != NULL, "cannot allocate memory for SIB");
@@ -274,15 +276,18 @@ static void rrc_gNB_CU_DU_init(gNB_RRC_INST *rrc)
     case ngran_gNB_CUCP:
       mac_rrc_dl_f1ap_init(&rrc->mac_rrc);
       cucp_cuup_message_transfer_e1ap_init(rrc);
+      LOG_I(NR_RRC,"CUCP node type\n"); //Abdallah Abou Hasna
       break;
     case ngran_gNB_CU:
       mac_rrc_dl_f1ap_init(&rrc->mac_rrc);
       cucp_cuup_message_transfer_direct_init(rrc);
+      LOG_I(NR_RRC,"CU node type\n"); //Abdallah Abou Hasna
       break;
     case ngran_gNB:
       mac_rrc_dl_direct_init(&rrc->mac_rrc);
       cucp_cuup_message_transfer_direct_init(rrc);
-       break;
+      LOG_I(NR_RRC,"node type\n"); //Abdallah Abou Hasna
+      break;
     case ngran_gNB_DU:
       /* silently drop this, as we currently still need the RRC at the DU. As
        * soon as this is not the case anymore, we can add the AssertFatal() */
@@ -1932,6 +1937,7 @@ void rrc_gNB_process_f1_setup_req(f1ap_setup_req_t *f1_setup_req) {
         int num_SI= 0;
 
         if (rrc->carrier.SIB23) {
+          LOG_I(NR_RRC,"F1AP configuration\n"); //Abdallah Abou Hasna
           F1AP_GNB_CU_CONFIGURATION_UPDATE (msg_p2).cells_to_activate[cu_cell_ind].SI_container[2]        = rrc->carrier.SIB23;
           F1AP_GNB_CU_CONFIGURATION_UPDATE (msg_p2).cells_to_activate[cu_cell_ind].SI_container_length[2] = rrc->carrier.sizeof_SIB23;
           num_SI++;

@@ -271,11 +271,12 @@ NR_ControlResourceSet_t *get_coreset(gNB_MAC_INST *nrmac,
                                      NR_SearchSpace__searchSpaceType_PR ss_type) {
 
   NR_ControlResourceSetId_t coreset_id = *ss->controlResourceSetId;
-
+  LOG_D(NR_MAC,"coreset_id %ld\n",coreset_id);
   if (ss_type == NR_SearchSpace__searchSpaceType_PR_common) { // common search space
     NR_ControlResourceSet_t *coreset;
     if(coreset_id == 0) {
       coreset =  nrmac->sched_ctrlCommon->coreset; // this is coreset 0
+      LOG_D(NR_MAC,"coreset 0 in get_coreset\n");
     } else if (bwp) {
       coreset = ((NR_BWP_Downlink_t*)bwp)->bwp_Common->pdcch_ConfigCommon->choice.setup->commonControlResourceSet;
     } else if (scc->downlinkConfigCommon->initialDownlinkBWP->pdcch_ConfigCommon->choice.setup->commonControlResourceSet) {
@@ -283,7 +284,7 @@ NR_ControlResourceSet_t *get_coreset(gNB_MAC_INST *nrmac,
     } else {
       coreset = NULL;
     }
-
+    LOG_D(NR_MAC,"coreset obtained: %p\n",coreset);
     if (coreset) AssertFatal(coreset_id == coreset->controlResourceSetId,
 			     "ID of common ss coreset does not correspond to id set in the "
 			     "search space\n");
@@ -428,17 +429,32 @@ int find_pdcch_candidate(const gNB_MAC_INST *mac,
   const int L = pdcch->RegBundleSize;
   const int C = R > 0 ? N_regs / (L * R) : 0;
   const int B_rb = L / N_symb; // nb of RBs occupied by each REG bundle
+  LOG_I(NR_MAC, "CORESET CCEs: %d (N_regs=%d, duration=%d)\n",
+    N_cces, N_regs, N_symb);
+  
 
   // loop over all the available candidates
   // this implements TS 38.211 Sec. 7.3.2.2
   for(int m = 0; m < nr_of_candidates; m++) { // loop over candidates
     bool taken = false; // flag if the resource for a given candidate are taken
     int first_cce = aggregation * ((Y + ((m * N_cces) / (aggregation * nr_of_candidates)) + N_ci) % (N_cces / aggregation));
-    LOG_D(NR_MAC,"Candidate %d of %d first_cce %d (L %d N_cces %d Y %d)\n", m, nr_of_candidates, first_cce, aggregation, N_cces, Y);
+    LOG_I(NR_MAC,"Candidate %d of %d first_cce %d (L %d N_cces %d Y %d)\n", m, nr_of_candidates, first_cce, aggregation, N_cces, Y);
     for (int j = first_cce; (j < first_cce + aggregation) && !taken; j++) { // loop over CCEs
       for (int k = 6 * j / L; (k < (6 * j / L + 6 / L)) && !taken; k++) { // loop over REG bundles
         int f = cce_to_reg_interleaving(R, k, pdcch->ShiftIndex, C, L, N_regs);
         for(int rb = 0; rb < B_rb; rb++) { // loop over the RBs of the bundle
+          printf("BWPStart: %d, f: %d, B_rb: %d, rb: %d\n", pdcch->BWPStart, f, B_rb, rb);
+          int idx = pdcch->BWPStart + f * B_rb + rb;
+          // printf("Accessing vrb_map[%d] (max: 275)\n", idx);
+          // printf("vrb_map[pdcch->BWPStart + f * B_rb + rb] = %d\n", vrb_map[pdcch->BWPStart + f * B_rb + rb]);
+          // printf("SL_to_bitmap(pdcch->StartSymbolIndex,N_symb) %d\n", SL_to_bitmap(pdcch->StartSymbolIndex,N_symb));
+          printf("vrb_map[pdcch->BWPStart + f * B_rb + rb] & SL_to_bitmap(pdcch->StartSymbolIndex,N_symb) %d\n", vrb_map[pdcch->BWPStart + f * B_rb + rb] & SL_to_bitmap(pdcch->StartSymbolIndex,N_symb));
+
+          printf("pdcch->StartSymbolIndex: %d\n", pdcch->StartSymbolIndex);
+          // printf("N_symb: %d\n", N_symb);
+          for (int i = 0; i < 13; i++) {
+            printf("i %d boolean %d\n",i, vrb_map[pdcch->BWPStart + f * B_rb + rb] & SL_to_bitmap(i,N_symb));
+          }
           if(vrb_map[pdcch->BWPStart + f * B_rb + rb] & SL_to_bitmap(pdcch->StartSymbolIndex,N_symb)) {
             taken = true;
             break;
@@ -763,7 +779,6 @@ int nr_get_default_pucch_res(int pucch_ResourceCommon) {
 
 void nr_configure_pdcch(nfapi_nr_dl_tti_pdcch_pdu_rel15_t *pdcch_pdu,
                         NR_ControlResourceSet_t *coreset,
-                        bool is_sib1,
                         NR_sched_pdcch_t *pdcch) {
 
 
@@ -786,14 +801,7 @@ void nr_configure_pdcch(nfapi_nr_dl_tti_pdcch_pdu_rel15_t *pdcch_pdu,
   pdcch_pdu->InterleaverSize = pdcch->InterleaverSize;
   pdcch_pdu->ShiftIndex = pdcch->ShiftIndex;
 
-  if(coreset->controlResourceSetId == 0) {
-    if(is_sib1)
-      pdcch_pdu->CoreSetType = NFAPI_NR_CSET_CONFIG_MIB_SIB1;
-    else
-      pdcch_pdu->CoreSetType = NFAPI_NR_CSET_CONFIG_PDCCH_CONFIG_CSET_0;
-  } else{
-    pdcch_pdu->CoreSetType = NFAPI_NR_CSET_CONFIG_PDCCH_CONFIG;
-  }
+  pdcch_pdu->CoreSetType = coreset->controlResourceSetId != 0 ? NFAPI_NR_CSET_CONFIG_PDCCH_CONFIG : NFAPI_NR_CSET_CONFIG_MIB_SIB1;
 
   //precoderGranularity
   pdcch_pdu->precoderGranularity = coreset->precoderGranularity;

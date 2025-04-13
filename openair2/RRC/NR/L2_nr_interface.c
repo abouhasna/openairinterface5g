@@ -88,6 +88,12 @@ uint16_t mac_rrc_nr_data_req(const module_id_t Mod_idP,
     return RC.nrrrc[Mod_idP]->carrier.sizeof_SIB1;
   }
 
+  //Abdallah Abou Hasna
+  if ((Srb_id & RAB_OFFSET) == BCCH_SI_BR) { // First SI message with SIB2/3
+    memcpy(&buffer_pP[0], RC.nrrrc[Mod_idP]->carrier.SIB23, RC.nrrrc[Mod_idP]->carrier.sizeof_SIB23);
+    return RC.nrrrc[Mod_idP]->carrier.sizeof_SIB23;
+  }
+
   // CCCH
   if ((Srb_id & RAB_OFFSET) == CCCH) {
     AssertFatal(0, "CCCH is managed by rlc of srb 0, not anymore by mac_rrc_nr_data_req\n");

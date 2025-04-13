@@ -617,9 +617,12 @@ NR_tda_info_t get_dl_tda_info(const NR_UE_DL_BWP_t *dl_BWP, int ss_type, int tda
         tda_info = get_info_from_tda_tables(table_type, tda_index, dmrs_typeA_pos, normal_CP);
       }
       else {
-        if(tdalist)
+        if(tdalist){
           tda_info = set_tda_info_from_list(tdalist, tda_index);
+          LOG_E(MAC, "SIB1 not present, using TDA from list\n");//Abdallah Abou Hasna
+        }
         else {
+          LOG_E(MAC, "SIB1 not present, but not tdalist, using TDA from default table\n");
           default_table_type_t table_type = get_default_table_type(mux_pattern);
           tda_info = get_info_from_tda_tables(table_type, tda_index, dmrs_typeA_pos, normal_CP);
         }
@@ -4156,7 +4159,7 @@ void get_type0_PDCCH_CSS_config_parameters(NR_Type0_PDCCH_CSS_config_t *type0_PD
   type0_PDCCH_CSS_config->num_symbols = -1;
   type0_PDCCH_CSS_config->rb_offset = -1;
   LOG_D(NR_MAC,"NR_SubcarrierSpacing_kHz30 %d, scs_ssb %d, scs_pdcch %d, min_chan_bw %d\n",(int)NR_SubcarrierSpacing_kHz30,(int)scs_ssb,(int)scs_pdcch,min_channel_bw);
-
+  LOG_D(NR_MAC,"index_4msb %d, index_4lsb %d\n", index_4msb, index_4lsb);
   //  type0-pdcch coreset
   switch( ((int)scs_ssb << 3) | (int)scs_pdcch ){
     case (NR_SubcarrierSpacing_kHz15 << 3) | NR_SubcarrierSpacing_kHz15:
@@ -4567,6 +4570,50 @@ void fill_searchSpaceZero(NR_SearchSpace_t *ss0,
   ss0->searchSpaceType->present = NR_SearchSpace__searchSpaceType_PR_common;
 }
 
+//Abdallah Abou Hasna
+/* void fill_searchSpaceSIB2(NR_SearchSpace_t *ss0)
+{
+
+  if(ss0 == NULL) ss0=calloc(1,sizeof(*ss0));
+  if(ss0->controlResourceSetId == NULL) ss0->controlResourceSetId=calloc(1,sizeof(*ss0->controlResourceSetId));
+  if(ss0->monitoringSymbolsWithinSlot == NULL) ss0->monitoringSymbolsWithinSlot = calloc(1,sizeof(*ss0->monitoringSymbolsWithinSlot));
+  if(ss0->monitoringSymbolsWithinSlot->buf == NULL) ss0->monitoringSymbolsWithinSlot->buf = calloc(1,2);
+  if(ss0->nrofCandidates == NULL) ss0->nrofCandidates = calloc(1,sizeof(*ss0->nrofCandidates));
+  if(ss0->searchSpaceType == NULL) ss0->searchSpaceType = calloc(1,sizeof(*ss0->searchSpaceType));
+  if(ss0->searchSpaceType->choice.common == NULL) ss0->searchSpaceType->choice.common=calloc(1,sizeof(*ss0->searchSpaceType->choice.common));
+  if(ss0->searchSpaceType->choice.common->dci_Format0_0_AndFormat1_0 == NULL)
+  ss0->searchSpaceType->choice.common->dci_Format0_0_AndFormat1_0 = calloc(1,sizeof(*ss0->searchSpaceType->choice.common->dci_Format0_0_AndFormat1_0));
+
+  ss0->searchSpaceId = 3;
+  *ss0->controlResourceSetId = 0;
+  ss0->monitoringSlotPeriodicityAndOffset = calloc(1,sizeof(*ss0->monitoringSlotPeriodicityAndOffset));
+  ss0->monitoringSlotPeriodicityAndOffset->present = NR_SearchSpace__monitoringSlotPeriodicityAndOffset_PR_sl1;
+  ss0->monitoringSlotPeriodicityAndOffset->choice.sl1 = (NULL_t)0;
+  ss0->duration = NULL;
+
+  ss0->monitoringSymbolsWithinSlot = calloc(1,sizeof(*ss0->monitoringSymbolsWithinSlot));
+  ss0->monitoringSymbolsWithinSlot->buf = calloc(1,2);
+  ss0->monitoringSymbolsWithinSlot->size = 2;
+  ss0->monitoringSymbolsWithinSlot->buf[0] = 0x80;
+  ss0->monitoringSymbolsWithinSlot->buf[1] = 0x0;
+  ss0->monitoringSymbolsWithinSlot->bits_unused = 2;
+
+  ss0->nrofCandidates = calloc(1,sizeof(*ss0->nrofCandidates));
+
+  ss0->nrofCandidates->aggregationLevel1 = NR_SearchSpace__nrofCandidates__aggregationLevel1_n0;
+  
+  ss0->nrofCandidates->aggregationLevel2 = NR_SearchSpace__nrofCandidates__aggregationLevel2_n0;
+  ss0->nrofCandidates->aggregationLevel4 = NR_SearchSpace__nrofCandidates__aggregationLevel4_n1;
+  
+  ss0->nrofCandidates->aggregationLevel8 = NR_SearchSpace__nrofCandidates__aggregationLevel8_n0;
+  ss0->nrofCandidates->aggregationLevel16 = NR_SearchSpace__nrofCandidates__aggregationLevel16_n0;
+  ss0->searchSpaceType = calloc(1,sizeof(*ss->searchSpaceType));
+
+  ss0->searchSpaceType->present = NR_SearchSpace__searchSpaceType_PR_common;
+  ss0->searchSpaceType->choice.common = calloc(1,sizeof(*ss->searchSpaceType->choice.common));
+
+}
+ */
 
 void find_period_offset_SR(const NR_SchedulingRequestResourceConfig_t *SchedulingReqRec, int *period, int *offset) {
   NR_SchedulingRequestResourceConfig__periodicityAndOffset_PR P_O = SchedulingReqRec->periodicityAndOffset->present;

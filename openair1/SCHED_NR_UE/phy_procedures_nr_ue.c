@@ -147,6 +147,8 @@ void nr_fill_rx_indication(fapi_nr_rx_indication_t *rx_ind,
         dl_harq0 = &ue->dl_harq_processes[0][dlsch0->dlsch_config.harq_process_nbr];
         rx_ind->rx_indication_body[n_pdus - 1].pdsch_pdu.harq_pid = dlsch0->dlsch_config.harq_process_nbr;
         rx_ind->rx_indication_body[n_pdus - 1].pdsch_pdu.ack_nack = dl_harq0->ack;
+        LOG_A(NR_RRC, "acknack in phy_procedures\n"); //Abdallah Abou Hasna
+        LOG_A(NR_RRC, "acknack : %d\n",dl_harq0->ack); //Abdallah Abou Hasna
         rx_ind->rx_indication_body[n_pdus - 1].pdsch_pdu.pdu = b;
         rx_ind->rx_indication_body[n_pdus - 1].pdsch_pdu.pdu_length = dl_harq0->tb_size / 8;
       }

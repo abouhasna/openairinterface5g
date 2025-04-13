@@ -312,6 +312,12 @@ static void configure_dlsch(NR_UE_DLSCH_t *dlsch0,
   }
   dlsch0->Nl = Nl;
   downlink_harq_process(dlsch0_harq, current_harq_pid, dlsch_config_pdu->ndi, dlsch_config_pdu->rv, dlsch0->rnti_type);
+  LOG_A(PHY , "@ configure_dlsch : dl harq pid %d, status %d, first_rx %d, round %d, ack %d\n",
+        current_harq_pid,
+        dlsch0_harq->status,
+        dlsch0_harq->first_rx,
+        dlsch0_harq->DLround,
+        dlsch0_harq->ack);
   if (dlsch0_harq->status != ACTIVE) {
     // dlsch0_harq->status not ACTIVE due to false retransmission
     // Reset the following flag to skip PDSCH procedures in that case and retrasmit harq status
@@ -439,8 +445,10 @@ int8_t nr_ue_scheduled_response(nr_scheduled_response_t *scheduled_response){
             NR_UE_DLSCH_t *dlsch0 = &((nr_phy_data_t *)scheduled_response->phy_data)->dlsch[0];
             dlsch0->rnti_type = _SI_RNTI_;
             dlsch0->dlsch_config = *dlsch_config_pdu;
+            LOG_A(PHY, "case FAPI_NR_DL_CONFIG_TYPE_SI_DLSCH:\n");
             configure_dlsch(dlsch0, PHY_vars_UE_g[module_id][cc_id]->dl_harq_processes[0], dlsch_config_pdu, module_id,
                             dl_config->dl_config_list[i].dlsch_config_pdu.rnti);
+             
           } break;
           case FAPI_NR_DL_CONFIG_TYPE_DLSCH: {
             dlsch_config_pdu = &dl_config->dl_config_list[i].dlsch_config_pdu.dlsch_config_rel15;
@@ -449,6 +457,7 @@ int8_t nr_ue_scheduled_response(nr_scheduled_response_t *scheduled_response){
             dlsch0->dlsch_config = *dlsch_config_pdu;
             configure_dlsch(dlsch0, PHY_vars_UE_g[module_id][cc_id]->dl_harq_processes[0], dlsch_config_pdu, module_id,
                             dl_config->dl_config_list[i].dlsch_config_pdu.rnti);
+            LOG_A(PHY, "case FAPI_NR_DL_CONFIG_TYPE_DLSCH:\n");
           } break;
           case FAPI_NR_CONFIG_TA_COMMAND:
             configure_ta_command(PHY_vars_UE_g[module_id][cc_id], &dl_config->dl_config_list[i].ta_command_pdu);

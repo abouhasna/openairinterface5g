@@ -50,6 +50,7 @@ static NR_SearchSpace_t *rrc_searchspace_config(bool is_common, int searchspacei
   ss->monitoringSlotPeriodicityAndOffset->present = NR_SearchSpace__monitoringSlotPeriodicityAndOffset_PR_sl1;
   ss->monitoringSlotPeriodicityAndOffset->choice.sl1 = (NULL_t)0;
   ss->duration = NULL;
+
   ss->monitoringSymbolsWithinSlot = calloc(1,sizeof(*ss->monitoringSymbolsWithinSlot));
   ss->monitoringSymbolsWithinSlot->buf = calloc(1,2);
   ss->monitoringSymbolsWithinSlot->size = 2;
@@ -61,7 +62,7 @@ static NR_SearchSpace_t *rrc_searchspace_config(bool is_common, int searchspacei
   ss->nrofCandidates->aggregationLevel1 = NR_SearchSpace__nrofCandidates__aggregationLevel1_n0;
   if (is_common) {
     ss->nrofCandidates->aggregationLevel2 = NR_SearchSpace__nrofCandidates__aggregationLevel2_n0;
-    ss->nrofCandidates->aggregationLevel4 = NR_SearchSpace__nrofCandidates__aggregationLevel4_n1;
+    ss->nrofCandidates->aggregationLevel4 = NR_SearchSpace__nrofCandidates__aggregationLevel4_n2;
   }
   else {
     ss->nrofCandidates->aggregationLevel2 = NR_SearchSpace__nrofCandidates__aggregationLevel2_n2;
@@ -1661,6 +1662,7 @@ NR_BCCH_BCH_Message_t *get_new_MIB_NR(const NR_ServingCellConfigCommon_t *scc)
   const NR_PDCCH_ConfigCommon_t *pdcch_cc = scc->downlinkConfigCommon->initialDownlinkBWP->pdcch_ConfigCommon->choice.setup;
   long cset0 = pdcch_cc->controlResourceSetZero ? *pdcch_cc->controlResourceSetZero : 0;
   mib->message.choice.mib->pdcch_ConfigSIB1.controlResourceSetZero = cset0;
+  LOG_D(NR_RRC, "MIB: controlResourceSetZero %ld\n", cset0);
   long ss0 = pdcch_cc->searchSpaceZero ? *pdcch_cc->searchSpaceZero : 0;
   mib->message.choice.mib->pdcch_ConfigSIB1.searchSpaceZero = ss0;
 
@@ -1791,35 +1793,37 @@ NR_BCCH_DL_SCH_Message_t *get_SIB1_NR(const gNB_RrcConfigurationReq *configurati
   // TODO: add connEstFailureControl
 
   //si-SchedulingInfo
-  /*sib1->si_SchedulingInfo = CALLOC(1,sizeof(struct NR_SI_SchedulingInfo));
+  sib1->si_SchedulingInfo = CALLOC(1,sizeof(struct NR_SI_SchedulingInfo));
   asn_set_empty(&sib1->si_SchedulingInfo->schedulingInfoList.list);
-  sib1->si_SchedulingInfo->si_WindowLength = NR_SI_SchedulingInfo__si_WindowLength_s40;
+  sib1->si_SchedulingInfo->si_WindowLength = NR_SI_SchedulingInfo__si_WindowLength_s40; //Abdallah Abou Hasna
   struct NR_SchedulingInfo *schedulingInfo = CALLOC(1,sizeof(struct NR_SchedulingInfo));
   schedulingInfo->si_BroadcastStatus = NR_SchedulingInfo__si_BroadcastStatus_broadcasting;
   schedulingInfo->si_Periodicity = NR_SchedulingInfo__si_Periodicity_rf8;
   asn_set_empty(&schedulingInfo->sib_MappingInfo.list);
 
-  NR_SIB_TypeInfo_t *sib_type3 = CALLOC(1,sizeof(e_NR_SIB_TypeInfo__type));
-  sib_type3->type = NR_SIB_TypeInfo__type_sibType3;
-  sib_type3->valueTag = CALLOC(1,sizeof(sib_type3->valueTag));
-  asn1cSeqAdd(&schedulingInfo->sib_MappingInfo.list,sib_type3);
+  // NR_SIB_TypeInfo_t *sib_type3 = CALLOC(1,sizeof(e_NR_SIB_TypeInfo__type));
+  // sib_type3->type = NR_SIB_TypeInfo__type_sibType3;
+  // sib_type3->valueTag = CALLOC(1,sizeof(sib_type3->valueTag));
+  // asn1cSeqAdd(&schedulingInfo->sib_MappingInfo.list,sib_type3);
 
-  NR_SIB_TypeInfo_t *sib_type5 = CALLOC(1,sizeof(e_NR_SIB_TypeInfo__type));
-  sib_type5->type = NR_SIB_TypeInfo__type_sibType5;
-  sib_type5->valueTag = CALLOC(1,sizeof(sib_type5->valueTag));
-  asn1cSeqAdd(&schedulingInfo->sib_MappingInfo.list,sib_type5);
+  // NR_SIB_TypeInfo_t *sib_type5 = CALLOC(1,sizeof(e_NR_SIB_TypeInfo__type));
+  // sib_type5->type = NR_SIB_TypeInfo__type_sibType5;
+  // sib_type5->valueTag = CALLOC(1,sizeof(sib_type5->valueTag));
+  // asn1cSeqAdd(&schedulingInfo->sib_MappingInfo.list,sib_type5);
 
-  NR_SIB_TypeInfo_t *sib_type4 = CALLOC(1,sizeof(e_NR_SIB_TypeInfo__type));
-  sib_type4->type = NR_SIB_TypeInfo__type_sibType4;
-  sib_type4->valueTag = CALLOC(1,sizeof(sib_type4->valueTag));
-  asn1cSeqAdd(&schedulingInfo->sib_MappingInfo.list,sib_type4);
+  // NR_SIB_TypeInfo_t *sib_type4 = CALLOC(1,sizeof(e_NR_SIB_TypeInfo__type));
+  // sib_type4->type = NR_SIB_TypeInfo__type_sibType4;
+  // sib_type4->valueTag = CALLOC(1,sizeof(sib_type4->valueTag));
+  // asn1cSeqAdd(&schedulingInfo->sib_MappingInfo.list,sib_type4);
 
   NR_SIB_TypeInfo_t *sib_type2 = CALLOC(1,sizeof(e_NR_SIB_TypeInfo__type));
   sib_type2->type = NR_SIB_TypeInfo__type_sibType2;
-  sib_type2->valueTag = CALLOC(1,sizeof(sib_type2->valueTag));
+  // sib_type2->valueTag = CALLOC(1,sizeof(sib_type2->valueTag));
+  sib_type2->valueTag = calloc(1, sizeof(*sib_type2->valueTag));//Abdallah Abou Hasna
+  *sib_type2->valueTag = 0;//Abdallah Abou Hasna
   asn1cSeqAdd(&schedulingInfo->sib_MappingInfo.list,sib_type2);
 
-  asn1cSeqAdd(&sib1->si_SchedulingInfo->schedulingInfoList.list,schedulingInfo);*/
+  asn1cSeqAdd(&sib1->si_SchedulingInfo->schedulingInfoList.list,schedulingInfo);
 
   // servingCellConfigCommon
   asn1cCalloc(sib1->servingCellConfigCommon, ServCellCom);
@@ -1866,7 +1870,7 @@ NR_BCCH_DL_SCH_Message_t *get_SIB1_NR(const gNB_RrcConfigurationReq *configurati
   asn1cSeqAdd(&initialDownlinkBWP->pdcch_ConfigCommon->choice.setup->commonSearchSpaceList->list, ss3);
 
   asn1cCallocOne(initialDownlinkBWP->pdcch_ConfigCommon->choice.setup->searchSpaceSIB1,  0);
-  asn1cCallocOne(initialDownlinkBWP->pdcch_ConfigCommon->choice.setup->searchSpaceOtherSystemInformation, 3);
+  asn1cCallocOne(initialDownlinkBWP->pdcch_ConfigCommon->choice.setup->searchSpaceOtherSystemInformation, 3); 
   asn1cCallocOne(initialDownlinkBWP->pdcch_ConfigCommon->choice.setup->pagingSearchSpace, 2);
   asn1cCallocOne(initialDownlinkBWP->pdcch_ConfigCommon->choice.setup->ra_SearchSpace, 1);
    
