@@ -448,13 +448,13 @@ int find_pdcch_candidate(const gNB_MAC_INST *mac,
           // printf("Accessing vrb_map[%d] (max: 275)\n", idx);
           // printf("vrb_map[pdcch->BWPStart + f * B_rb + rb] = %d\n", vrb_map[pdcch->BWPStart + f * B_rb + rb]);
           // printf("SL_to_bitmap(pdcch->StartSymbolIndex,N_symb) %d\n", SL_to_bitmap(pdcch->StartSymbolIndex,N_symb));
-          printf("vrb_map[pdcch->BWPStart + f * B_rb + rb] & SL_to_bitmap(pdcch->StartSymbolIndex,N_symb) %d\n", vrb_map[pdcch->BWPStart + f * B_rb + rb] & SL_to_bitmap(pdcch->StartSymbolIndex,N_symb));
+          // printf("vrb_map[pdcch->BWPStart + f * B_rb + rb] & SL_to_bitmap(pdcch->StartSymbolIndex,N_symb) %d\n", vrb_map[pdcch->BWPStart + f * B_rb + rb] & SL_to_bitmap(pdcch->StartSymbolIndex,N_symb));
 
-          printf("pdcch->StartSymbolIndex: %d\n", pdcch->StartSymbolIndex);
-          // printf("N_symb: %d\n", N_symb);
-          for (int i = 0; i < 13; i++) {
-            printf("i %d boolean %d\n",i, vrb_map[pdcch->BWPStart + f * B_rb + rb] & SL_to_bitmap(i,N_symb));
-          }
+          // printf("pdcch->StartSymbolIndex: %d\n", pdcch->StartSymbolIndex);
+          // // printf("N_symb: %d\n", N_symb);
+          // for (int i = 0; i < 13; i++) {
+          //   printf("i %d boolean %d\n",i, vrb_map[pdcch->BWPStart + f * B_rb + rb] & SL_to_bitmap(i,N_symb));
+          // }
           if(vrb_map[pdcch->BWPStart + f * B_rb + rb] & SL_to_bitmap(pdcch->StartSymbolIndex,N_symb)) {
             taken = true;
             break;
