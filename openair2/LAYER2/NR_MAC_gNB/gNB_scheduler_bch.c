@@ -829,52 +829,6 @@ static void other_sib_sched_control(module_id_t module_idP,
   
   AssertFatal(nr_of_candidates > 0, "nr_of_candidates is 0\n");
   NR_ControlResourceSet_t *coreset = get_coreset(gNB_mac, scc, NULL, ss, NR_SearchSpace__searchSpaceType_PR_common);
-  // if (!gNB_mac->sched_pdcch_otherSI) {
-  //   gNB_mac->sched_pdcch_otherSI = calloc(1, sizeof(*gNB_mac->sched_pdcch_otherSI));
-  //   *gNB_mac->sched_pdcch_otherSI = set_pdcch_structure(gNB_mac, ss, coreset, scc, NULL, type0_PDCCH_CSS_config);
-  // }
-  // gNB_mac->sched_ctrlCommon->sched_pdcch = gNB_mac->sched_pdcch_otherSI;// Assuming `coreset` is a pointer to your NR_ControlResourceSet_t struct
-  
-  if (coreset) {
-    LOG_I(NR_MAC,
-          "CORESET Info:\n"
-          "  ID: %ld\n"
-          "  duration: %ld symbols\n"
-          "  frequencyDomainResources length: %d bits\n"
-          "  cce_REG_MappingType: %s\n"
-          "  regBundleSize: %ld\n"
-          "  interleaverSize: %ld\n"
-          "  shiftIndex: %ld\n"
-          "  precoderGranularity: %ld\n"
-          "  tci_PresentInDCI: %s\n"
-          "  scramblingID: %s\n",
-          coreset->controlResourceSetId,
-          coreset->duration,
-          coreset->frequencyDomainResources.size * 8,
-          coreset->cce_REG_MappingType.present == NR_ControlResourceSet__cce_REG_MappingType_PR_nonInterleaved ? "nonInterleaved" : "interleaved",
-          coreset->cce_REG_MappingType.present == NR_ControlResourceSet__cce_REG_MappingType_PR_interleaved ?
-              coreset->cce_REG_MappingType.choice.interleaved->reg_BundleSize : -1,
-          coreset->cce_REG_MappingType.present == NR_ControlResourceSet__cce_REG_MappingType_PR_interleaved ?
-              coreset->cce_REG_MappingType.choice.interleaved->interleaverSize : -1,
-          (coreset->cce_REG_MappingType.present == NR_ControlResourceSet__cce_REG_MappingType_PR_interleaved &&
-           coreset->cce_REG_MappingType.choice.interleaved->shiftIndex != NULL) ?
-              *coreset->cce_REG_MappingType.choice.interleaved->shiftIndex : -1,
-          coreset->precoderGranularity,
-          coreset->tci_PresentInDCI ? "yes" : "no",
-          coreset->pdcch_DMRS_ScramblingID ? "yes" : "no");
-  }
-
-  char freq_bitmap_str[coreset->frequencyDomainResources.size * 8 + 1];
-  int pos = 0;
-  for (int i = 0; i < coreset->frequencyDomainResources.size; i++) {
-    uint8_t byte = coreset->frequencyDomainResources.buf[i];
-    for (int j = 7; j >= 0; j--) { // MSB first
-      freq_bitmap_str[pos++] = ((byte >> j) & 0x01) ? '1' : '0';
-    }
-  }
-  freq_bitmap_str[pos] = '\0'; // null-terminate
-  LOG_I(NR_MAC, "  frequencyDomainResources bitmap: %s\n", freq_bitmap_str);
-
   
   gNB_mac->sched_ctrlCommon->sched_pdcch = set_pdcch_structure(gNB_mac, ss, coreset, scc, NULL, type0_PDCCH_CSS_config);
   NR_sched_pdcch_t *sched_pdcch = &gNB_mac->sched_ctrlCommon->sched_pdcch;
@@ -891,7 +845,6 @@ static void other_sib_sched_control(module_id_t module_idP,
 
   // Mark the corresponding RBs as used
   fill_pdcch_vrb_map(gNB_mac, 0, sched_pdcch, cce_index, aggregation_level);
-  LOG_I(NR_MAC, "after fill_pdcch_vrb_map\n");
   NR_sched_pdsch_t sched_pdsch_otherSI = {0};
   sched_pdsch_otherSI.time_domain_allocation = time_domain_allocation;
   sched_pdsch_otherSI.dmrs_parms = dmrs_parms;
@@ -899,13 +852,11 @@ static void other_sib_sched_control(module_id_t module_idP,
   sched_pdsch_otherSI.mcs = 0; // starting from mcs 0
 
   uint16_t *vrb_map = cc->vrb_map;
-  LOG_I(NR_MAC, "after vrb_map = cc->vrb_map[beam_index]\n");
   // uint8_t *sib_bcch_pdu = cc->other_sib_bcch_pdu[payload_idx];
   // int num_total_bytes = cc->other_sib_bcch_length[payload_idx];
   uint8_t sib_bcch_pdu[NR_MAX_SIB_LENGTH/8];
   
   uint32_t num_total_bytes = mac_rrc_nr_data_req(module_idP, 0, frame, BCCH_SI_BR, SI_RNTI, 1, sib_bcch_pdu);
-  LOG_I(NR_MAC, "after mac_rrc_nr_data_req\n");
   uint32_t TBS = get_tbs_bch(type0_PDCCH_CSS_config, &sched_pdsch_otherSI, num_total_bytes, vrb_map);
   for (int rb = 0; rb < sched_pdsch_otherSI.rbSize; rb++) {
     vrb_map[rb + type0_PDCCH_CSS_config->cset_start_rb] |= SL_to_bitmap(tda_info.startSymbolIndex, tda_info.nrOfSymbols);
@@ -1030,8 +981,6 @@ void schedule_nr_other_sib(module_id_t module_idP,
   int rel_slot[num_ssb];
   int rel_frame[num_ssb];
   int ssb = 0;
-  LOG_E(NR_MAC, "calling schedule_other_sib temp_slot %d temp_frame %d\n",temp_slot, temp_frame);
-
   while (ssb < num_ssb) {
     AssertFatal(temp_frame < window_length_f, "Couldn't fit %d SSB in window length of %d slots\n", num_ssb, window_length_sl);
 
@@ -1043,9 +992,6 @@ void schedule_nr_other_sib(module_id_t module_idP,
 
     temp_frame += (temp_slot + period) / n_slots_frame;
     temp_slot = (temp_slot + period) % n_slots_frame;
-    LOG_E(NR_MAC, "ssb %d, num_ssb %d\n", ssb, num_ssb);
-    if(ssb == num_ssb)
-      break;
   }
   
   
