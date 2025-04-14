@@ -443,7 +443,7 @@ int find_pdcch_candidate(const gNB_MAC_INST *mac,
       for (int k = 6 * j / L; (k < (6 * j / L + 6 / L)) && !taken; k++) { // loop over REG bundles
         int f = cce_to_reg_interleaving(R, k, pdcch->ShiftIndex, C, L, N_regs);
         for(int rb = 0; rb < B_rb; rb++) { // loop over the RBs of the bundle
-          printf("BWPStart: %d, f: %d, B_rb: %d, rb: %d\n", pdcch->BWPStart, f, B_rb, rb);
+          // printf("BWPStart: %d, f: %d, B_rb: %d, rb: %d\n", pdcch->BWPStart, f, B_rb, rb);
           int idx = pdcch->BWPStart + f * B_rb + rb;
           // printf("Accessing vrb_map[%d] (max: 275)\n", idx);
           // printf("vrb_map[pdcch->BWPStart + f * B_rb + rb] = %d\n", vrb_map[pdcch->BWPStart + f * B_rb + rb]);

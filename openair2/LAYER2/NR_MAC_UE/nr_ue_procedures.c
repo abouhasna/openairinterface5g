@@ -308,8 +308,9 @@ int8_t nr_ue_decode_BCCH_DL_SCH(module_id_t module_id,
     mac->get_sib1 = false;
     mac->get_otherSI = false;
   }
-  else
+  else{
     LOG_E(NR_MAC, "Got NACK on NR-BCCH-DL-SCH-Message (%s)\n", mac->get_sib1 ? "SIB1" : "other SI");
+  }
   return 0;
 }
 

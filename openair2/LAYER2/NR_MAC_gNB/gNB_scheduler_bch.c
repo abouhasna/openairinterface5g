@@ -761,7 +761,7 @@ static void nr_fill_nfapi_dl_SIB_pdu(gNB_MAC_INST *gNB_mac,
   int dci_format = NR_DL_DCI_FORMAT_1_0;
   int rnti_type = NR_RNTI_SI;
 
-  fill_dci_pdu_rel15(NULL,
+  fill_dci_pdu_rel15(scc,
                      NULL,
                      NULL,
                      NULL,
@@ -773,6 +773,7 @@ static void nr_fill_nfapi_dl_SIB_pdu(gNB_MAC_INST *gNB_mac,
                      search_space,
                      coreset,
                      gNB_mac->cset0_bwp_size);
+
 
   LOG_D(MAC,
         "BWPSize: %3i, BWPStart: %3i, SubcarrierSpacing: %i, CyclicPrefix: %i, StartSymbolIndex: %i, DurationSymbols: %i, "
@@ -813,7 +814,7 @@ static void other_sib_sched_control(module_id_t module_idP,
   NR_Type0_PDCCH_CSS_config_t *type0_PDCCH_CSS_config = &gNB_mac->type0_PDCCH_CSS_config[cc->ssb_index[beam_index]];
   AssertFatal(gNB_mac->sched_ctrlCommon, "sched_ctrlCommon is NULL\n");
   NR_PDSCH_ConfigCommon_t *pdsch_ConfigCommon = scc->downlinkConfigCommon->initialDownlinkBWP->pdsch_ConfigCommon->choice.setup;
-  int time_domain_allocation = 1;
+  int time_domain_allocation = 0;
   NR_tda_info_t tda_info = set_tda_info_from_list1(pdsch_ConfigCommon->pdsch_TimeDomainAllocationList, time_domain_allocation);
   LOG_D(NR_MAC,"tda_info.startSymbolIndex: %d, tda_info.nrOfSymbols: %d\n", tda_info.startSymbolIndex, tda_info.nrOfSymbols);
 
@@ -1085,33 +1086,6 @@ void get_monitoring_period_offset(const NR_SearchSpace_t *ss, int *period, int *
 }
 
 
-
-
-// NR_beam_alloc_t beam_allocation_procedure(NR_beam_info_t *beam_info, int frame, int slot, int beam_index, int slots_per_frame)
-// {
-//   // if no beam allocation for analog beamforming we always return beam index 0 (no multiple beams)
-//   if (!beam_info->beam_allocation)
-//     return (NR_beam_alloc_t) {.new_beam = false, .idx = 0};
-
-//   const int index = get_beam_index(beam_info, frame, slot, slots_per_frame);
-//   for (int i = 0; i < beam_info->beams_per_period; i++) {
-//     NR_beam_alloc_t beam_struct = {.new_beam = false, .idx = i};
-//     int *beam = &beam_info->beam_allocation[i][index];
-//     if (*beam == -1) {
-//       beam_struct.new_beam = true;
-//       *beam = beam_index;
-//     }
-//     if (*beam == beam_index) {
-//       LOG_D(NR_MAC, "%d.%d Using beam structure with index %d for beam %d (%s)\n", frame, slot, beam_struct.idx, beam_index, beam_struct.new_beam ? "new beam" : "old beam");
-//       return beam_struct;
-//     }
-//   }
-
-//   return (NR_beam_alloc_t) {.new_beam = false, .idx = -1};
-// }
-
-
-
 static uint32_t get_tbs_bch(NR_Type0_PDCCH_CSS_config_t *type0_PDCCH_CSS_config,
                             NR_sched_pdsch_t *pdsch,
                             uint32_t num_total_bytes,
@@ -1186,6 +1160,7 @@ uint8_t nr_get_rv(int rel_round)
   AssertFatal(rel_round < 4, "Invalid index %d for rv\n", rel_round);
   return nr_rv_round_map[rel_round];
 }
+
 
 NR_tda_info_t set_tda_info_from_list1(NR_PDSCH_TimeDomainResourceAllocationList_t *tdalist, int tda_index)
 {

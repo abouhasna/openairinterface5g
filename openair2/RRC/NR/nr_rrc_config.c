@@ -1795,31 +1795,15 @@ NR_BCCH_DL_SCH_Message_t *get_SIB1_NR(const gNB_RrcConfigurationReq *configurati
   //si-SchedulingInfo
   sib1->si_SchedulingInfo = CALLOC(1,sizeof(struct NR_SI_SchedulingInfo));
   asn_set_empty(&sib1->si_SchedulingInfo->schedulingInfoList.list);
-  sib1->si_SchedulingInfo->si_WindowLength = NR_SI_SchedulingInfo__si_WindowLength_s40; //Abdallah Abou Hasna
+  sib1->si_SchedulingInfo->si_WindowLength = NR_SI_SchedulingInfo__si_WindowLength_s40;
   struct NR_SchedulingInfo *schedulingInfo = CALLOC(1,sizeof(struct NR_SchedulingInfo));
   schedulingInfo->si_BroadcastStatus = NR_SchedulingInfo__si_BroadcastStatus_broadcasting;
   schedulingInfo->si_Periodicity = NR_SchedulingInfo__si_Periodicity_rf8;
   asn_set_empty(&schedulingInfo->sib_MappingInfo.list);
 
-  // NR_SIB_TypeInfo_t *sib_type3 = CALLOC(1,sizeof(e_NR_SIB_TypeInfo__type));
-  // sib_type3->type = NR_SIB_TypeInfo__type_sibType3;
-  // sib_type3->valueTag = CALLOC(1,sizeof(sib_type3->valueTag));
-  // asn1cSeqAdd(&schedulingInfo->sib_MappingInfo.list,sib_type3);
-
-  // NR_SIB_TypeInfo_t *sib_type5 = CALLOC(1,sizeof(e_NR_SIB_TypeInfo__type));
-  // sib_type5->type = NR_SIB_TypeInfo__type_sibType5;
-  // sib_type5->valueTag = CALLOC(1,sizeof(sib_type5->valueTag));
-  // asn1cSeqAdd(&schedulingInfo->sib_MappingInfo.list,sib_type5);
-
-  // NR_SIB_TypeInfo_t *sib_type4 = CALLOC(1,sizeof(e_NR_SIB_TypeInfo__type));
-  // sib_type4->type = NR_SIB_TypeInfo__type_sibType4;
-  // sib_type4->valueTag = CALLOC(1,sizeof(sib_type4->valueTag));
-  // asn1cSeqAdd(&schedulingInfo->sib_MappingInfo.list,sib_type4);
-
   NR_SIB_TypeInfo_t *sib_type2 = CALLOC(1,sizeof(e_NR_SIB_TypeInfo__type));
   sib_type2->type = NR_SIB_TypeInfo__type_sibType2;
-  // sib_type2->valueTag = CALLOC(1,sizeof(sib_type2->valueTag));
-  sib_type2->valueTag = calloc(1, sizeof(*sib_type2->valueTag));//Abdallah Abou Hasna
+  sib_type2->valueTag = calloc(1, sizeof(*sib_type2->valueTag));
   *sib_type2->valueTag = 0;//Abdallah Abou Hasna
   asn1cSeqAdd(&schedulingInfo->sib_MappingInfo.list,sib_type2);
 
