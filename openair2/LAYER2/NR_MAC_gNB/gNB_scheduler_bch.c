@@ -326,7 +326,7 @@ static uint32_t schedule_control_sib1(module_id_t module_id,
                                                               0);
 
   AssertFatal(gNB_mac->sched_ctrlCommon->cce_index >= 0, "Could not find CCE for coreset0\n");
-  LOG_I(NR_MAC, "[SIB1] Allocated CCE index: %d at aggregation level: %d\n",
+  LOG_I(NR_MAC, "[SIB] Allocated CCE index: %d at aggregation level: %d\n",
     gNB_mac->sched_ctrlCommon->cce_index,
     gNB_mac->sched_ctrlCommon->aggregation_level);
 
@@ -642,7 +642,6 @@ static void nr_fill_nfapi_dl_sib2_pdu(int Mod_idP,
   nfapi_nr_dl_tti_pdcch_pdu_rel15_t *pdcch_pdu_rel15 = &dl_tti_pdcch_pdu->pdcch_pdu.pdcch_pdu_rel15;
   nr_configure_pdcch(pdcch_pdu_rel15,
   gNB_mac->sched_ctrlCommon->coreset,
-  true, // sib1
   &gNB_mac->sched_ctrlCommon->sched_pdcch);
 
   nfapi_nr_dl_tti_request_pdu_t *dl_tti_pdsch_pdu = &dl_req->dl_tti_pdu_list[dl_req->nPDUs];

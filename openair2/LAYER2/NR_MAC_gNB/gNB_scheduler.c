@@ -214,7 +214,7 @@ void gNB_dlsch_ulsch_scheduler(module_id_t module_idP, frame_t frame, sub_frame_
 
   //Abdallah Abou Hasna
   if (get_softmodem_params()->sa == 1)
-    schedule_nr_other_sib(module_idP, frame, slot, &sched_info->DL_req, &sched_info->TX_req);
+    schedule_nr_sib2(module_idP, frame, slot, &sched_info->DL_req, &sched_info->TX_req);
 
   // This schedule PRACH if we are not in phy_test mode
   if (get_softmodem_params()->phy_test == 0) {
