@@ -716,7 +716,7 @@ static void nr_fill_nfapi_dl_sib2_pdu(int Mod_idP,
   dci_payload.frequency_domain_assignment.val = PRBalloc_to_locationandbandwidth0(
   pdsch_pdu_rel15->rbSize, pdsch_pdu_rel15->rbStart, type0_PDCCH_CSS_config->num_rbs);
 
-  dci_payload.time_domain_assignment.val = gNB_mac->sched_ctrlCommon->sched_pdsch.time_domain_allocation;
+  dci_payload.time_domain_assignment.val = 2;
   dci_payload.mcs = pdsch->mcs;
   dci_payload.rv = pdsch_pdu_rel15->rvIndex[0];
   dci_payload.harq_pid = 0;
@@ -760,7 +760,18 @@ static void nr_fill_nfapi_dl_sib2_pdu(int Mod_idP,
   LOG_D(MAC,"numDlDci: %i\n", pdcch_pdu_rel15->numDlDci);
 }
 
-
+NR_tda_info_t set_tda_info_from_list1(NR_PDSCH_TimeDomainResourceAllocationList_t *tdalist, int tda_index)
+{
+  NR_tda_info_t tda_info = {0};
+  AssertFatal(tda_index < tdalist->list.count, "TDA index from DCI %d exceeds TDA list array size %d\n", tda_index, tdalist->list.count);
+  NR_PDSCH_TimeDomainResourceAllocation_t *tda = tdalist->list.array[tda_index];
+  tda_info.mapping_type = tda->mappingType;
+  int S, L;
+  SLIV2SL(tda->startSymbolAndLength, &S, &L);
+  tda_info.startSymbolIndex = S;
+  tda_info.nrOfSymbols = L;
+  return tda_info;
+}
 void schedule_nr_sib2(module_id_t module_idP,
                       int frameP,
                       int slotP, 
@@ -817,15 +828,17 @@ void schedule_nr_sib2(module_id_t module_idP,
         for (int k=0;k<sib2_sdu_length;k++)
           LOG_D(NR_MAC,"byte %d : %x\n",k,((uint8_t*)sib2_payload)[k]);
 
-        //default_table_type_t table_type = get_default_table_type(type0_PDCCH_CSS_config->type0_pdcch_ss_mux_pattern);
-        // assuming normal CP
-        //NR_tda_info_t tda_info = get_info_from_tda_tables(table_type, time_domain_allocation, gNB_mac->common_channels->ServingCellConfigCommon->dmrs_TypeA_Position, true);
-        //NR_tda_info_t tda_info = set_tda_info_from_list(tdalist, time_domain_allocation); //Abdallah Abou Hasna
-        NR_tda_info_t tda_info = {0};//Abdallah Abou Hasna
-        tda_info.startSymbolIndex = 1;
-        tda_info.nrOfSymbols = 12;
-        tda_info.k2 = 0;
-        tda_info.mapping_type = 0;
+        NR_PDSCH_ConfigCommon_t *pdsch_ConfigCommon = scc->downlinkConfigCommon->initialDownlinkBWP->pdsch_ConfigCommon->choice.setup;
+        int time_domain_allocation = 2;
+        NR_tda_info_t tda_info = set_tda_info_from_list1(pdsch_ConfigCommon->pdsch_TimeDomainAllocationList, time_domain_allocation);
+        LOG_D(NR_MAC,"tda_info.startSymbolIndex: %d, tda_info.nrOfSymbols: %d\n", tda_info.startSymbolIndex, tda_info.nrOfSymbols);
+
+        // NR_tda_info_t tda_info = {0};//Abdallah Abou Hasna
+        // tda_info.startSymbolIndex = 1;
+        // tda_info.nrOfSymbols = 12;
+        // tda_info.k2 = 0;
+        // tda_info.mapping_type = 0;
+
         AssertFatal((tda_info.startSymbolIndex + tda_info.nrOfSymbols) < 14, "SIB2 TDA %d would cause overlap with CSI-RS. Please select a different SIB2 TDA.\n", time_domain_allocation);
         LOG_E(NR_MAC,"SIB2 TDA %d startSymbolIndex %d nrOfSymbols %d k2 %ld mapping type %d\n", time_domain_allocation, tda_info.startSymbolIndex, tda_info.nrOfSymbols, tda_info.k2, tda_info.mapping_type);//Abdallah Abou Hasna
         NR_pdsch_dmrs_t dmrs_parms = get_dl_dmrs_params(scc,
