@@ -804,15 +804,19 @@ static void other_sib_sched_control(module_id_t module_idP,
                                     int payload_idx)
 {
   gNB_MAC_INST *gNB_mac = RC.nrmac[module_idP];
-  NR_ServingCellConfigCommon_t *scc = gNB_mac->common_channels[0].ServingCellConfigCommon;
+  NR_COMMON_channels_t *cc = &gNB_mac->common_channels[0];
+  NR_ServingCellConfigCommon_t *scc = cc->ServingCellConfigCommon;
+  
   int n_slots_frame = nr_slots_per_frame[*scc->ssbSubcarrierSpacing];
+  
   // NR_beam_alloc_t beam = beam_allocation_procedure(&gNB_mac->beam_info, frame, slot, beam_index, n_slots_frame);
   // AssertFatal(beam.idx >= 0, "Cannot allocate otherSIB corresponding for SSB number %d in any available beam\n", beam_index);
   LOG_D(NR_MAC, "(%d.%d) otherSIB payload %d transmission for ssb number %d\n", frame, slot, payload_idx, beam_index);
 
-  NR_COMMON_channels_t *cc = &gNB_mac->common_channels[0];
+  
   NR_Type0_PDCCH_CSS_config_t *type0_PDCCH_CSS_config = &gNB_mac->type0_PDCCH_CSS_config[cc->ssb_index[beam_index]];
   AssertFatal(gNB_mac->sched_ctrlCommon, "sched_ctrlCommon is NULL\n");
+  
   NR_PDSCH_ConfigCommon_t *pdsch_ConfigCommon = scc->downlinkConfigCommon->initialDownlinkBWP->pdsch_ConfigCommon->choice.setup;
   int time_domain_allocation = 0;
   NR_tda_info_t tda_info = set_tda_info_from_list1(pdsch_ConfigCommon->pdsch_TimeDomainAllocationList, time_domain_allocation);
@@ -822,10 +826,10 @@ static void other_sib_sched_control(module_id_t module_idP,
 
   uint8_t aggregation_level = 0;
   uint8_t nr_of_candidates = 0;
-  for (int i = 0; i < 5; i++) {
-    find_aggregation_candidates(&aggregation_level, &nr_of_candidates, ss, 16 >> i);
+  for (int i = 0; i < 3; i++) {
+    find_aggregation_candidates(&aggregation_level, &nr_of_candidates, ss, 4 << i);
     if (nr_of_candidates > 0)
-      break; // choosing the higher value of aggregation level available
+      break; // choosing the lower value of aggregation level available
   }
   
   AssertFatal(nr_of_candidates > 0, "nr_of_candidates is 0\n");
