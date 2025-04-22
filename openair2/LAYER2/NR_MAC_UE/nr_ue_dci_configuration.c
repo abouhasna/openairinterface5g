@@ -111,7 +111,7 @@ void config_dci_pdu(NR_UE_MAC_INST_t *mac,
     coreset = ue_get_coreset(mac, coreset_id);
     rel15->coreset.CoreSetType = NFAPI_NR_CSET_CONFIG_PDCCH_CONFIG;
   } else {
-    LOG_E(NR_MAC, "CORESET=%d and SS = %d\n", coreset_id, ss->searchSpaceId); //Abdallah Abou Hasna
+    LOG_E(NR_MAC, "CORESET=%d and SS = %ld\n", coreset_id, ss->searchSpaceId); //Abdallah Abou Hasna
     coreset = mac->coreset0;
     rel15->coreset.CoreSetType = NFAPI_NR_CSET_CONFIG_MIB_SIB1;
   }
@@ -298,7 +298,46 @@ bool is_ss_monitor_occasion(const int frame, const int slot, const int slots_per
   }
   return monitor;
 }
+bool search_space_monitoring_ocasion_other_si(NR_UE_MAC_INST_t *mac,
+                                              const NR_SearchSpace_t *ss,
+                                              const int abs_slot,
+                                              const int frame,
+                                              const int slot,
+                                              const int slots_per_frame)
+{
+  const int duration = ss->duration ? *ss->duration : 1;
+  int period, offset;
+  get_monitoring_period_offset(ss, &period, &offset);
+  for (int i = 0; i < duration; i++) {
+    if (((frame * slots_per_frame + slot - offset - i) % period) == 0) {
+      int N = mac->ssb_list.nb_tx_ssb;
+      // int K = mac->ssb_list.nb_ssb_per_index[mac->mib_ssb];
+      int K = 0; // k_th transmitted SSB
+      for (int i = 0; i < mac->mib_ssb; i++) {
+        if(mac->ssb_list.tx_ssb[i].transmitted)
+          K++;
+      }
+      // numbering current frame and slot in terms of monitoring occasions in window
+      int rel_slot = abs_slot - mac->si_SchedInfo.si_window_start;
+      int current_monitor_occasion = (rel_slot % period) + (duration * rel_slot / period);
+      return current_monitor_occasion % N == K;
+    }
+  }
 
+  return false;
+}
+bool is_window_valid(NR_UE_MAC_INST_t *mac, int window_slots, int abs_slot)
+{
+  if (mac->si_SchedInfo.si_window_start == -1) {
+    // out of window
+    return false;
+  } else if (abs_slot > mac->si_SchedInfo.si_window_start + window_slots) {
+    // window expired
+    mac->si_SchedInfo.si_window_start = -1;
+    return false;
+  }
+  return true;
+}
 static bool monitor_dci_for_other_SI(NR_UE_MAC_INST_t *mac,
                                      const NR_SearchSpace_t *ss,
                                      const int si_idx,
@@ -432,9 +471,9 @@ void ue_dci_configuration(NR_UE_MAC_INST_t *mac, fapi_nr_dl_config_request_t *dl
     // PDCCH monitoring occasions for SI message reception in SI-window
     // are same as PDCCH monitoring occasions for SIB1
     const NR_SearchSpace_t *ss = mac->otherSI_SS ? mac->otherSI_SS : mac->search_space_zero;
-    LOG_E(NR_MAC, "mac->get_otherSI_SS : %d\n", ss->searchSpaceId); //Abdallah Abou Hasna
+    LOG_E(NR_MAC, "mac->get_otherSI_SS : %ld\n", ss->searchSpaceId); //Abdallah Abou Hasna
     // TODO configure SI-window
-    if (monitior_dci_for_other_SI(mac, ss, i,slots_per_frame, frame, slot)) {
+    if (monitor_dci_for_other_SI(mac, ss, i,slots_per_frame, frame, slot)) {
       LOG_D(NR_MAC, "Monitoring DCI for other SIs in frame %d slot %d\n", frame, slot);
       config_dci_pdu(mac, dl_config, NR_RNTI_SI, slot, ss);
     }
