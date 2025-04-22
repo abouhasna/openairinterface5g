@@ -322,7 +322,6 @@ void nr_ue_decode_BCCH_DL_SCH(module_id_t module_id,
     LOG_E(NR_MAC, "Got NACK on NR-BCCH-DL-SCH-Message (%s)\n", mac->get_sib1 ? "SIB1" : "other SI");
     nr_mac_rrc_data_ind_ue(module_id, cc_id, gNB_index, 0, 0, 0, NR_BCCH_DL_SCH, NULL, 0);
   }
-  return 0;
 }
 
 //  TODO: change to UE parameter, scs: 15KHz, slot duration: 1ms

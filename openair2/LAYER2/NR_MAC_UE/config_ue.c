@@ -702,7 +702,7 @@ static void configure_si_schedulingInfo(NR_UE_MAC_INST_t *mac,
   if (si_SchedulingInfo) {
     mac->si_SchedInfo.si_WindowLength = si_SchedulingInfo->si_WindowLength;
     for (int i = 0; i < si_SchedulingInfo->schedulingInfoList.list.count; i++) {
-      si_schedinfo_config_t *config = calloc_or_fail(1, sizeof(*config));
+      si_schedinfo_config_t *config = calloc_or_fail(sizeof(*config));
       config->type = NR_SI_INFO;
       config->si_WindowPosition = i + 1;
       config->si_Periodicity = si_SchedulingInfo->schedulingInfoList.list.array[i]->si_Periodicity;
@@ -711,7 +711,7 @@ static void configure_si_schedulingInfo(NR_UE_MAC_INST_t *mac,
   }
   if (si_SchedulingInfo_v1700) {
     for (int i = 0; i < si_SchedulingInfo_v1700->schedulingInfoList2_r17.list.count; i++) {
-      si_schedinfo_config_t *config = calloc_or_fail(1, sizeof(*config));
+      si_schedinfo_config_t *config = calloc_or_fail(sizeof(*config));
       config->type = NR_SI_INFO_v1700;
       config->si_WindowPosition = si_SchedulingInfo_v1700->schedulingInfoList2_r17.list.array[i]->si_WindowPosition_r17;
       config->si_Periodicity = si_SchedulingInfo_v1700->schedulingInfoList2_r17.list.array[i]->si_Periodicity_r17;
