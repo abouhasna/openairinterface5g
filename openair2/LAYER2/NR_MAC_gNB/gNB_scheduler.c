@@ -208,14 +208,12 @@ void gNB_dlsch_ulsch_scheduler(module_id_t module_idP, frame_t frame, sub_frame_
   // This schedules MIB
   schedule_nr_mib(module_idP, frame, slot, &sched_info->DL_req);
 
-  // This schedules SIB1
-  if (get_softmodem_params()->sa == 1)
+  // This schedules SIB1 and OSI
+  if (get_softmodem_params()->sa == 1){
     schedule_nr_sib1(module_idP, frame, slot, &sched_info->DL_req, &sched_info->TX_req);
-
-  //Abdallah Abou Hasna
-  if (get_softmodem_params()->sa == 1)
-    schedule_nr_other_sib(module_idP, frame, slot, &sched_info->DL_req, &sched_info->TX_req);
-
+    schedule_nr_other_sib(module_idP, frame, slot, &sched_info->DL_req, &sched_info->TX_req);//Abdallah Abou Hasna
+  }
+  
   // This schedule PRACH if we are not in phy_test mode
   if (get_softmodem_params()->phy_test == 0) {
     /* we need to make sure that resources for PRACH are free. To avoid that

@@ -26,6 +26,12 @@
 #include "assertions.h"
 
 //-----------------------begin func -------------------
+#define UPDATE_IE(DESTINATION, ORIGIN, TYPE)     \
+  do {                                           \
+    TYPE *tmp = ORIGIN;                          \
+    ORIGIN = DESTINATION;                        \
+    DESTINATION = tmp;                           \
+  } while (0)                                    \
 
 /*! \fn uint8_t BIT_STRING_to_uint8(BIT_STRING_t *)
  *\brief  This function extract at most a 8 bits value from a BIT_STRING_t object, the exact bits number depend on the BIT_STRING_t contents.

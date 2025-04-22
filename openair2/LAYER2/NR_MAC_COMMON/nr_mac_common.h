@@ -201,6 +201,8 @@ int get_dlbw_tbslbrm(int scc_bwpsize,
 int get_ulbw_tbslbrm(int scc_bwpsize,
                      NR_CellGroupConfig_t *cg);
 
+void get_monitoring_period_offset(const NR_SearchSpace_t *ss, int *period, int *offset);
+
 uint32_t nr_compute_tbslbrm(uint16_t table,
 			    uint16_t nb_rb,
 		            uint8_t Nl);

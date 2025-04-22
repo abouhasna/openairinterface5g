@@ -37,6 +37,7 @@
 #include "assertions.h"
 #include "PHY/defs_common.h"
 
+#define MAX_SI_GROUPS 3
 #define MAX_BWP_SIZE 275
 #define NR_MAX_NUM_BWP 4
 #define NR_MAX_HARQ_PROCESSES 16
@@ -47,6 +48,14 @@ typedef enum {
   nr_FR1 = 0,
   nr_FR2
 } nr_frequency_range_e;
+
+typedef struct {
+  bool active;
+  bool suspended;
+  uint32_t counter;
+  uint32_t target;
+  uint32_t step;
+} NR_timer_t;
 
 typedef struct nr_bandentry_s {
   int16_t band;

@@ -427,8 +427,8 @@ static void nr_schedule_msg2(uint16_t rach_frame,
                              int mu,
                              NR_ServingCellConfigCommon_t *scc,
                              frame_type_t frame_type,
-                             uint16_t monitoring_slot_period,
-                             uint16_t monitoring_offset,
+                             int monitoring_slot_period,
+                             int monitoring_offset,
                              uint8_t beam_index,
                              uint8_t num_active_ssb,
                              int16_t *tdd_beam_association,
@@ -548,7 +548,7 @@ void nr_initiate_ra_proc(module_id_t module_idP,
   NR_SCHED_LOCK(&nr_mac->sched_lock);
 
   uint8_t ul_carrier_id = 0; // 0 for NUL 1 for SUL
-  uint16_t msg2_frame, msg2_slot,monitoring_slot_period,monitoring_offset;
+  uint16_t msg2_frame, msg2_slot;
   NR_COMMON_channels_t *cc = &nr_mac->common_channels[CC_id];
   NR_ServingCellConfigCommon_t *scc = cc->ServingCellConfigCommon;
   frame_type_t frame_type = cc->frame_type;
@@ -629,8 +629,9 @@ void nr_initiate_ra_proc(module_id_t module_idP,
     ra->preamble_slot = slotP;
 
     // retrieving ra pdcch monitoring period and offset
-    find_monitoring_periodicity_offset_common(ra->ra_ss, &monitoring_slot_period, &monitoring_offset);
-
+    int monitoring_slot_period, monitoring_offset;
+    get_monitoring_period_offset(ra->ra_ss, &monitoring_slot_period, &monitoring_offset);
+  
     nr_schedule_msg2(frameP,
                      slotP,
                      &msg2_frame,

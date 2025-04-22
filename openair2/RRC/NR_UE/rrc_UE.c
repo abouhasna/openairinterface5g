@@ -568,6 +568,7 @@ int nr_decode_SI(const module_id_t module_id, const uint8_t gNB_index, NR_System
     typeandinfo = si->criticalExtensions.choice.systemInformation->sib_TypeAndInfo.list.array[i];
 
     LOG_A(NR_RRC, "checking si list\n"); //Abdallah Abou Hasna
+    LOG_A(NR_RRC, "Found SIB%d\n", typeandinfo->present + 1);
 
     switch(typeandinfo->present) {
       case NR_SystemInformation_IEs__sib_TypeAndInfo__Member_PR_sib2:

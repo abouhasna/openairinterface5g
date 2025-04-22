@@ -869,6 +869,10 @@ uint8_t nr_dci_decoding_procedure(PHY_VARS_NR_UE *ue,
   rnti_t n_rnti;
   int e_rx_cand_idx = 0;
 
+  // if DCI for SIB we don't break after finding 1st DCI with that RNTI
+  // there might be SIB1 and otherSIB in the same slot with the same length
+  bool is_SI = rel15->rnti == SI_RNTI;
+  
   for (int j=0;j<rel15->number_of_candidates;j++) {
     int CCEind = rel15->CCE[j];
     int L = rel15->L[j];
@@ -878,17 +882,17 @@ uint8_t nr_dci_decoding_procedure(PHY_VARS_NR_UE *ue,
     for (int k = 0; k < rel15->num_dci_options; k++) {
       // skip this candidate if we've already found one with the
       // same rnti and format at a different aggregation level
-      int dci_found=0;
-      for (int ind=0;ind < dci_ind->number_of_dcis ; ind++) {
-        if (rel15->rnti== dci_ind->dci_list[ind].rnti &&
-            rel15->dci_format_options[k]==dci_ind->dci_list[ind].dci_format) {
-           dci_found=1;
-           break;
+
+      int dci_length = rel15->dci_length_options[k];
+      int ind;
+      for (ind = 0; ind < dci_ind->number_of_dcis; ind++) {
+        if (!is_SI && rel15->rnti == dci_ind->dci_list[ind].rnti && dci_length == dci_ind->dci_list[ind].payloadSize) {
+          break;
         }
       }
-      if (dci_found == 1)
-        continue;
-      int dci_length = rel15->dci_length_options[k];
+      if (ind < dci_ind->number_of_dcis)
+        continue; 
+
       uint64_t dci_estimation[2]= {0};
 
       LOG_D(PHY, "(%i.%i) Trying DCI candidate %d of %d number of candidates, CCE %d (%d), L %d, length %d, format %s\n",

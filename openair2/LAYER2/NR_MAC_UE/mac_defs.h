@@ -406,6 +406,23 @@ typedef struct prach_association_pattern {
   uint8_t nb_of_frame; // Total number of frames included in the association pattern period (after mapping the SSBs and determining the real association pattern length)
 } prach_association_pattern_t;
 
+typedef enum {
+  NR_SI_INFO,
+  NR_SI_INFO_v1700
+} nr_si_info_type;
+
+typedef struct {
+  nr_si_info_type type;
+  long si_Periodicity;
+  long si_WindowPosition;
+} si_schedinfo_config_t;
+
+typedef struct {
+  int si_window_start;
+  int si_WindowLength;
+  A_SEQUENCE_OF(si_schedinfo_config_t) si_SchedInfo_list;
+} si_schedInfo_t;
+
 // SSB details
 typedef struct ssb_info {
   bool transmitted; // True if the SSB index is transmitted according to the SSB positions map configuration
@@ -429,7 +446,7 @@ typedef struct {
   ////  MAC config
   int                             first_sync_frame;
   bool                            get_sib1;
-  bool                            get_otherSI;
+  bool                            get_otherSI[MAX_SI_GROUPS];
   NR_DRX_Config_t                 *drx_Config;
   NR_SchedulingRequestConfig_t    *schedulingRequestConfig;
   NR_BSR_Config_t                 *bsr_Config;
@@ -437,7 +454,7 @@ typedef struct {
   NR_PHR_Config_t                 *phr_Config;
   NR_RNTI_Value_t                 *cs_RNTI;
   NR_MIB_t                        *mib;
-  struct NR_SI_SchedulingInfo *si_SchedulingInfo;
+  si_schedInfo_t si_SchedInfo;
   int si_window_start;
   ssb_list_info_t ssb_list;
 
