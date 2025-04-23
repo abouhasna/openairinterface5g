@@ -304,44 +304,37 @@ uint8_t do_SIB8_NR(rrc_gNB_carrier_data_t *carrier,
   sib8->present = NR_SystemInformation_IEs__sib_TypeAndInfo__Member_PR_sib8;
   sib8->choice.sib8 = CALLOC(1, sizeof(struct NR_SIB8));
   
-  // Set messageIdentifier (16 bits, e.g., CMAS alert identifier)
-  sib8->choice.sib8->messageIdentifier.size = 2; // 16 bits = 2 bytes
+  sib8->choice.sib8->messageIdentifier.size = 2;
   sib8->choice.sib8->messageIdentifier.buf = CALLOC(2, sizeof(uint8_t));
-  sib8->choice.sib8->messageIdentifier.buf[0] = 0x11; // Example: CMAS Presidential Alert (0x1111)
+  sib8->choice.sib8->messageIdentifier.buf[0] = 0x11; // Presidential Alert (0x1111)
   sib8->choice.sib8->messageIdentifier.buf[1] = 0x11;
   sib8->choice.sib8->messageIdentifier.bits_unused = 0;
 
-  // Set serialNumber (16 bits, e.g., unique serial number)
-  sib8->choice.sib8->serialNumber.size = 2; // 16 bits = 2 bytes
+  sib8->choice.sib8->serialNumber.size = 2;
   sib8->choice.sib8->serialNumber.buf = CALLOC(2, sizeof(uint8_t));
-  sib8->choice.sib8->serialNumber.buf[0] = 0x00; // Example: Serial number 0x0001
+  sib8->choice.sib8->serialNumber.buf[0] = 0x00;
   sib8->choice.sib8->serialNumber.buf[1] = 0x01;
   sib8->choice.sib8->serialNumber.bits_unused = 0;
 
-  // Set warningMessageSegmentType (e.g., lastSegment for single-segment message)
   sib8->choice.sib8->warningMessageSegmentType = NR_SIB8__warningMessageSegmentType_lastSegment;
 
-  // Set warningMessageSegmentNumber (0 for single-segment message)
   sib8->choice.sib8->warningMessageSegmentNumber = 0;
 
-  // Set warningMessageSegment (UTF-8 encoded "TEST ALERT MESSAGE!!")
-  const char* alert_text = "ALERT! https://example.com";
+  const char* alert_text = "ALERT ALERT ALERT! https://exampleMoreWordsToTestLength.com";
   sib8->choice.sib8->warningMessageSegment.size = strlen(alert_text);
   sib8->choice.sib8->warningMessageSegment.buf = CALLOC(sib8->choice.sib8->warningMessageSegment.size, sizeof(uint8_t));
   memcpy(sib8->choice.sib8->warningMessageSegment.buf, alert_text, sib8->choice.sib8->warningMessageSegment.size);
 
-  // Optionally set dataCodingScheme (e.g., UTF-8 encoding, 0x0F for CMAS)
   sib8->choice.sib8->dataCodingScheme = CALLOC(1, sizeof(OCTET_STRING_t));
   sib8->choice.sib8->dataCodingScheme->size = 1;
   sib8->choice.sib8->dataCodingScheme->buf = CALLOC(1, sizeof(uint8_t));
-  sib8->choice.sib8->dataCodingScheme->buf[0] = 0x0F; // UTF-8 for CMAS
+  sib8->choice.sib8->dataCodingScheme->buf[0] = 0x0F; // UTF-8
 
-  // Optional fields (not set in this example)
-  sib8->choice.sib8->warningAreaCoordinatesSegment = NULL;
-  sib8->choice.sib8->lateNonCriticalExtension = NULL;
   asn1cSeqAdd(&ies->sib_TypeAndInfo.list, sib8);
+
   // if(g_log->log_component[NR_RRC].level >= OAILOG_DEBUG)
   //   xer_fprint(stdout, &asn_DEF_NR_SIB8, (const void *) sib8->choice.sib8);
+  
   print_sib8(sib8->choice.sib8);
   enc_rval = uper_encode_to_buffer(&asn_DEF_NR_BCCH_DL_SCH_Message,
                                    NULL,
