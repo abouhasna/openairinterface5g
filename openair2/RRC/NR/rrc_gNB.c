@@ -231,12 +231,20 @@ static void init_NR_SI(gNB_RRC_INST *rrc, gNB_RrcConfigurationReq *configuration
 
   if(NODE_IS_MONOLITHIC(rrc->node_type)) LOG_I(NR_RRC,"monolithic gNB\n"); //Abdallah Abou Hasna
   
+  // if (!NODE_IS_DU(rrc->node_type)) {
+  //   rrc->carrier.SIB23 = (uint8_t *) malloc16(100);
+  //   AssertFatal(rrc->carrier.SIB23 != NULL, "cannot allocate memory for SIB");
+  //   rrc->carrier.sizeof_SIB23 = do_SIB23_NR(&rrc->carrier, configuration);
+  //   LOG_I(NR_RRC,"do_SIB23_NR, size %d \n ", rrc->carrier.sizeof_SIB23);
+  //   AssertFatal(rrc->carrier.sizeof_SIB23 != 255,"FATAL, RC.nrrrc[mod].carrier[CC_id].sizeof_SIB23 == 255");
+  // }
+  
   if (!NODE_IS_DU(rrc->node_type)) {
-    rrc->carrier.SIB23 = (uint8_t *) malloc16(100);
-    AssertFatal(rrc->carrier.SIB23 != NULL, "cannot allocate memory for SIB");
-    rrc->carrier.sizeof_SIB23 = do_SIB23_NR(&rrc->carrier, configuration);
-    LOG_I(NR_RRC,"do_SIB23_NR, size %d \n ", rrc->carrier.sizeof_SIB23);
-    AssertFatal(rrc->carrier.sizeof_SIB23 != 255,"FATAL, RC.nrrrc[mod].carrier[CC_id].sizeof_SIB23 == 255");
+    rrc->carrier.SIB8 = (uint8_t *) malloc16(100);
+    AssertFatal(rrc->carrier.SIB8 != NULL, "cannot allocate memory for SIB");
+    rrc->carrier.sizeof_SIB8 = do_SIB8_NR(&rrc->carrier, configuration);
+    LOG_I(NR_RRC,"do_SIB8_NR, size %d \n ", rrc->carrier.sizeof_SIB8);
+    AssertFatal(rrc->carrier.sizeof_SIB8 != 255,"FATAL, RC.nrrrc[mod].carrier[CC_id].sizeof_SIB8 == 255");
   }
 
   LOG_I(NR_RRC,"Done init_NR_SI\n");

@@ -734,7 +734,7 @@ static void other_sib_sched_control(module_id_t module_idP,
   AssertFatal(gNB_mac->sched_ctrlCommon, "sched_ctrlCommon is NULL\n");
   
   NR_PDSCH_ConfigCommon_t *pdsch_ConfigCommon = scc->downlinkConfigCommon->initialDownlinkBWP->pdsch_ConfigCommon->choice.setup;
-  int time_domain_allocation = 2;
+  int time_domain_allocation = 1;
   NR_tda_info_t tda_info = set_tda_info_from_list1(pdsch_ConfigCommon->pdsch_TimeDomainAllocationList, time_domain_allocation);
   LOG_D(NR_MAC,"tda_info.startSymbolIndex: %d, tda_info.nrOfSymbols: %d\n", tda_info.startSymbolIndex, tda_info.nrOfSymbols);
 

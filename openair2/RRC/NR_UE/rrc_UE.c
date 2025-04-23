@@ -625,6 +625,8 @@ int nr_decode_SI(const module_id_t module_id, const uint8_t gNB_index, NR_System
         if(!SI_info->sib8)
           SI_info->sib8 = calloc(1, sizeof(*SI_info->sib8));
         memcpy(SI_info->sib8, typeandinfo->choice.sib8, sizeof(NR_SIB8_t));
+
+        print_sib8(SI_info->sib8);
         SI_info->sib8_timer = 0;
         LOG_I(RRC, "[UE %"PRIu8"] Found SIB8 from gNB %"PRIu8"\n", module_id, gNB_index);
         break;

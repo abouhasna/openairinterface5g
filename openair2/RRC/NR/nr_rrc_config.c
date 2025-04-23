@@ -1801,11 +1801,11 @@ NR_BCCH_DL_SCH_Message_t *get_SIB1_NR(const gNB_RrcConfigurationReq *configurati
   schedulingInfo->si_Periodicity = NR_SchedulingInfo__si_Periodicity_rf8;
   asn_set_empty(&schedulingInfo->sib_MappingInfo.list);
 
-  NR_SIB_TypeInfo_t *sib_type2 = CALLOC(1,sizeof(e_NR_SIB_TypeInfo__type));
-  sib_type2->type = NR_SIB_TypeInfo__type_sibType2;
-  sib_type2->valueTag = calloc(1, sizeof(*sib_type2->valueTag));
-  *sib_type2->valueTag = 0;//Abdallah Abou Hasna
-  asn1cSeqAdd(&schedulingInfo->sib_MappingInfo.list,sib_type2);
+  NR_SIB_TypeInfo_t *sib_type8 = CALLOC(1,sizeof(e_NR_SIB_TypeInfo__type));
+  sib_type8->type = NR_SIB_TypeInfo__type_sibType8;
+  sib_type8->valueTag = calloc(1, sizeof(*sib_type8->valueTag));
+  // *sib_type8->valueTag = 0;//Abdallah Abou Hasna
+  asn1cSeqAdd(&schedulingInfo->sib_MappingInfo.list,sib_type8);
 
   asn1cSeqAdd(&sib1->si_SchedulingInfo->schedulingInfoList.list,schedulingInfo);
 

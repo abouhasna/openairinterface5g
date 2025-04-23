@@ -242,6 +242,118 @@ uint8_t do_SIB23_NR(rrc_gNB_carrier_data_t *carrier,
   return((enc_rval.encoded+7)/8);
 }
 
+void print_sib8(const NR_SIB8_t* sib8) {
+    printf("<SIB8>\n");
+    printf("    <messageIdentifier>");
+    for (size_t i = 0; i < sib8->messageIdentifier.size; i++) {
+        printf("%02X", sib8->messageIdentifier.buf[i]);
+    }
+    printf("</messageIdentifier>\n");
+
+    printf("    <serialNumber>");
+    for (size_t i = 0; i < sib8->serialNumber.size; i++) {
+        printf("%02X", sib8->serialNumber.buf[i]);
+    }
+    printf("</serialNumber>\n");
+
+    printf("    <warningMessageSegmentType>%s</warningMessageSegmentType>\n",
+           sib8->warningMessageSegmentType == NR_SIB8__warningMessageSegmentType_lastSegment
+               ? "lastSegment"
+               : "notLastSegment");
+
+    printf("    <warningMessageSegmentNumber>%ld</warningMessageSegmentNumber>\n",
+           sib8->warningMessageSegmentNumber);
+
+    printf("    <warningMessageSegment>");
+    if (sib8->dataCodingScheme && sib8->dataCodingScheme->buf &&
+        sib8->dataCodingScheme->buf[0] == 0x0F) {
+        for (size_t i = 0; i < sib8->warningMessageSegment.size; i++) {
+            putchar(sib8->warningMessageSegment.buf[i]);
+        }
+    } else {
+        for (size_t i = 0; i < sib8->warningMessageSegment.size; i++) {
+            printf("%02X ", sib8->warningMessageSegment.buf[i]);
+        }
+    }
+    printf("</warningMessageSegment>\n");
+
+    if (sib8->dataCodingScheme) {
+        printf("    <dataCodingScheme>%02X</dataCodingScheme>\n",
+               sib8->dataCodingScheme->buf[0]);
+    }
+    printf("</SIB8>\n");
+}
+
+uint8_t do_SIB8_NR(rrc_gNB_carrier_data_t *carrier,
+                    gNB_RrcConfigurationReq *configuration) {
+  asn_enc_rval_t enc_rval;
+  SystemInformation_IEs__sib_TypeAndInfo__Member *sib8 = NULL;
+
+  NR_BCCH_DL_SCH_Message_t *sib_message = CALLOC(1,sizeof(NR_BCCH_DL_SCH_Message_t));
+  sib_message->message.present = NR_BCCH_DL_SCH_MessageType_PR_c1;
+  sib_message->message.choice.c1 = CALLOC(1,sizeof(struct NR_BCCH_DL_SCH_MessageType__c1));
+  sib_message->message.choice.c1->present = NR_BCCH_DL_SCH_MessageType__c1_PR_systemInformation;
+  sib_message->message.choice.c1->choice.systemInformation = CALLOC(1,sizeof(struct NR_SystemInformation));
+  
+  struct NR_SystemInformation *sib = sib_message->message.choice.c1->choice.systemInformation;
+  sib->criticalExtensions.present = NR_SystemInformation__criticalExtensions_PR_systemInformation;
+  sib->criticalExtensions.choice.systemInformation = CALLOC(1, sizeof(struct NR_SystemInformation_IEs));
+
+  struct NR_SystemInformation_IEs *ies = sib->criticalExtensions.choice.systemInformation;
+  sib8 = CALLOC(1, sizeof(SystemInformation_IEs__sib_TypeAndInfo__Member));
+  sib8->present = NR_SystemInformation_IEs__sib_TypeAndInfo__Member_PR_sib8;
+  sib8->choice.sib8 = CALLOC(1, sizeof(struct NR_SIB8));
+  
+  // Set messageIdentifier (16 bits, e.g., CMAS alert identifier)
+  sib8->choice.sib8->messageIdentifier.size = 2; // 16 bits = 2 bytes
+  sib8->choice.sib8->messageIdentifier.buf = CALLOC(2, sizeof(uint8_t));
+  sib8->choice.sib8->messageIdentifier.buf[0] = 0x11; // Example: CMAS Presidential Alert (0x1111)
+  sib8->choice.sib8->messageIdentifier.buf[1] = 0x11;
+  sib8->choice.sib8->messageIdentifier.bits_unused = 0;
+
+  // Set serialNumber (16 bits, e.g., unique serial number)
+  sib8->choice.sib8->serialNumber.size = 2; // 16 bits = 2 bytes
+  sib8->choice.sib8->serialNumber.buf = CALLOC(2, sizeof(uint8_t));
+  sib8->choice.sib8->serialNumber.buf[0] = 0x00; // Example: Serial number 0x0001
+  sib8->choice.sib8->serialNumber.buf[1] = 0x01;
+  sib8->choice.sib8->serialNumber.bits_unused = 0;
+
+  // Set warningMessageSegmentType (e.g., lastSegment for single-segment message)
+  sib8->choice.sib8->warningMessageSegmentType = NR_SIB8__warningMessageSegmentType_lastSegment;
+
+  // Set warningMessageSegmentNumber (0 for single-segment message)
+  sib8->choice.sib8->warningMessageSegmentNumber = 0;
+
+  // Set warningMessageSegment (UTF-8 encoded "TEST ALERT MESSAGE!!")
+  const char* alert_text = "ALERT! https://example.com";
+  sib8->choice.sib8->warningMessageSegment.size = strlen(alert_text);
+  sib8->choice.sib8->warningMessageSegment.buf = CALLOC(sib8->choice.sib8->warningMessageSegment.size, sizeof(uint8_t));
+  memcpy(sib8->choice.sib8->warningMessageSegment.buf, alert_text, sib8->choice.sib8->warningMessageSegment.size);
+
+  // Optionally set dataCodingScheme (e.g., UTF-8 encoding, 0x0F for CMAS)
+  sib8->choice.sib8->dataCodingScheme = CALLOC(1, sizeof(OCTET_STRING_t));
+  sib8->choice.sib8->dataCodingScheme->size = 1;
+  sib8->choice.sib8->dataCodingScheme->buf = CALLOC(1, sizeof(uint8_t));
+  sib8->choice.sib8->dataCodingScheme->buf[0] = 0x0F; // UTF-8 for CMAS
+
+  // Optional fields (not set in this example)
+  sib8->choice.sib8->warningAreaCoordinatesSegment = NULL;
+  sib8->choice.sib8->lateNonCriticalExtension = NULL;
+  asn1cSeqAdd(&ies->sib_TypeAndInfo.list, sib8);
+  // if(g_log->log_component[NR_RRC].level >= OAILOG_DEBUG)
+  //   xer_fprint(stdout, &asn_DEF_NR_SIB8, (const void *) sib8->choice.sib8);
+  print_sib8(sib8->choice.sib8);
+  enc_rval = uper_encode_to_buffer(&asn_DEF_NR_BCCH_DL_SCH_Message,
+                                   NULL,
+                                   (void *)sib_message,
+                                   carrier->SIB8,
+                                   100);
+  AssertFatal (enc_rval.encoded > 0, "ASN1 message encoding failed (%s, %lu)!\n",
+               enc_rval.failed_type->name, enc_rval.encoded);
+  return((enc_rval.encoded+7)/8);
+}
+
+
 void do_SpCellConfig(gNB_RRC_INST *rrc,
                       struct NR_SpCellConfig  *spconfig){
   //gNB_RrcConfigurationReq  *common_configuration;

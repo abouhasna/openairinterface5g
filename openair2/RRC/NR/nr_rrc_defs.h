@@ -331,6 +331,9 @@ typedef struct {
   uint8_t                                   *SIB23;
   uint8_t                                   sizeof_SIB23;
 
+  uint8_t                                   *SIB8;
+  uint8_t                                   sizeof_SIB8;
+
   long                                      physCellId;
 
   NR_BCCH_BCH_Message_t                    *mib;
