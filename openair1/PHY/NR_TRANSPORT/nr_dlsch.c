@@ -266,7 +266,7 @@ void nr_generate_pdsch(processingData_L1tx_t *msgTx,
           // The reference point for is subcarrier 0 of the lowest-numbered resource block in CORESET 0 if the corresponding
           // PDCCH is associated with CORESET 0 and Type0-PDCCH common search space and is addressed to SI-RNTI
           // 3GPP TS 38.211 V15.8.0 Section 7.4.1.1.2 Mapping to physical resources
-          if (rel15->rnti==SI_RNTI) {
+          if (rel15->refPoint != 0) {
             if (dmrs_Type==NFAPI_NR_DMRS_TYPE1) {
               dmrs_idx = rel15->rbStart*6;
             } else {
