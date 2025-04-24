@@ -56,7 +56,7 @@ static uint32_t get_tbs_bch(NR_Type0_PDCCH_CSS_config_t *type0_PDCCH_CSS_config,
                      uint16_t *vrb_map);
 
 uint8_t nr_get_rv(int rel_round);
-NR_tda_info_t set_tda_info_from_list1(NR_PDSCH_TimeDomainResourceAllocationList_t *tdalist, int tda_index);
+NR_tda_info_t get_tda_info_from_list(NR_PDSCH_TimeDomainResourceAllocationList_t *tdalist, int tda_index);
 
 static void schedule_ssb(frame_t frame,
                          sub_frame_t slot,
@@ -735,7 +735,7 @@ static void other_sib_sched_control(module_id_t module_idP,
   
   NR_PDSCH_ConfigCommon_t *pdsch_ConfigCommon = scc->downlinkConfigCommon->initialDownlinkBWP->pdsch_ConfigCommon->choice.setup;
   int time_domain_allocation = 1;
-  NR_tda_info_t tda_info = set_tda_info_from_list1(pdsch_ConfigCommon->pdsch_TimeDomainAllocationList, time_domain_allocation);
+  NR_tda_info_t tda_info = get_tda_info_from_list(pdsch_ConfigCommon->pdsch_TimeDomainAllocationList, time_domain_allocation);
   LOG_D(NR_MAC,"tda_info.startSymbolIndex: %d, tda_info.nrOfSymbols: %d\n", tda_info.startSymbolIndex, tda_info.nrOfSymbols);
 
   NR_pdsch_dmrs_t dmrs_parms = get_dl_dmrs_params(scc, NULL, &tda_info, 1);
@@ -948,7 +948,7 @@ uint8_t nr_get_rv(int rel_round)
 }
 
 
-NR_tda_info_t set_tda_info_from_list1(NR_PDSCH_TimeDomainResourceAllocationList_t *tdalist, int tda_index)
+NR_tda_info_t get_tda_info_from_list(NR_PDSCH_TimeDomainResourceAllocationList_t *tdalist, int tda_index)
 {
   NR_tda_info_t tda_info = {0};
   AssertFatal(tda_index < tdalist->list.count, "TDA index from DCI %d exceeds TDA list array size %d\n", tda_index, tdalist->list.count);

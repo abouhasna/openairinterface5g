@@ -328,7 +328,7 @@ uint8_t do_SIB8_NR(rrc_gNB_carrier_data_t *carrier,
   sib8->choice.sib8->dataCodingScheme = CALLOC(1, sizeof(OCTET_STRING_t));
   sib8->choice.sib8->dataCodingScheme->size = 1;
   sib8->choice.sib8->dataCodingScheme->buf = CALLOC(1, sizeof(uint8_t));
-  sib8->choice.sib8->dataCodingScheme->buf[0] = 0x0F; // UTF-8
+  sib8->choice.sib8->dataCodingScheme->buf[0] = 0x0F;
 
   asn1cSeqAdd(&ies->sib_TypeAndInfo.list, sib8);
 
