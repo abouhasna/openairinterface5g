@@ -284,6 +284,141 @@ void print_sib8(const NR_SIB8_t* sib8) {
     printf("</SIB8>\n");
 }
 
+static unsigned char gsm_7bit_alphabet[] = {
+	0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x0a, 0xff, 0xff, 0x0d, 0xff,
+	0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+	0xff, 0xff, 0x20, 0x21, 0x22, 0x23, 0x02, 0x25, 0x26, 0x27, 0x28, 0x29, 0x2a, 0x2b, 0x2c,
+	0x2d, 0x2e, 0x2f, 0x30, 0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37, 0x38, 0x39, 0x3a, 0x3b,
+	0x3c, 0x3d, 0x3e, 0x3f, 0x00, 0x41, 0x42, 0x43, 0x44, 0x45, 0x46, 0x47, 0x48, 0x49, 0x4a,
+	0x4b, 0x4c, 0x4d, 0x4e, 0x4f, 0x50, 0x51, 0x52, 0x53, 0x54, 0x55, 0x56, 0x57, 0x58, 0x59,
+	0x5a, 0x3c, 0x2f, 0x3e, 0x14, 0x11, 0xff, 0x61, 0x62, 0x63, 0x64, 0x65, 0x66, 0x67, 0x68,
+	0x69, 0x6a, 0x6b, 0x6c, 0x6d, 0x6e, 0x6f, 0x70, 0x71, 0x72, 0x73, 0x74, 0x75, 0x76, 0x77,
+	0x78, 0x79, 0x7a, 0x28, 0x40, 0x29, 0x3d, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+	0xff, 0xff, 0x0c, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x5e, 0xff, 0xff,
+	0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x40, 0xff, 0x01, 0xff,
+	0x03, 0xff, 0x7b, 0x7d, 0xff, 0xff, 0xff, 0xff, 0xff, 0x5c, 0xff, 0xff, 0xff, 0xff, 0xff,
+	0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x5b, 0x7e, 0x5d, 0xff, 0x7c, 0xff, 0xff, 0xff,
+	0xff, 0x5b, 0x0e, 0x1c, 0x09, 0xff, 0x1f, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x5d,
+	0xff, 0xff, 0xff, 0xff, 0x5c, 0xff, 0x0b, 0xff, 0xff, 0xff, 0x5e, 0xff, 0xff, 0x1e, 0x7f,
+	0xff, 0xff, 0xff, 0x7b, 0x0f, 0x1d, 0xff, 0x04, 0x05, 0xff, 0xff, 0x07, 0xff, 0xff, 0xff,
+	0xff, 0x7d, 0x08, 0xff, 0xff, 0xff, 0x7c, 0xff, 0x0c, 0x06, 0xff, 0xff, 0x7e, 0xff, 0xff
+};
+
+
+int gsm_septet_encode(uint8_t *result, const char *data)
+{
+	int i, y = 0;
+	uint8_t ch;
+	for (i = 0; i < strlen(data); i++) {
+		ch = data[i];
+		switch(ch){
+		/* fall-through for extension characters */
+		case 0x0c:
+		case 0x5e:
+		case 0x7b:
+		case 0x7d:
+		case 0x5c:
+		case 0x5b:
+		case 0x7e:
+		case 0x5d:
+		case 0x7c:
+			result[y++] = 0x1b;
+		/* fall-through */
+		default:
+			result[y] = gsm_7bit_alphabet[ch];
+			break;
+		}
+		y++;
+	}
+
+	return y;
+}
+
+int gsm_septet_pack(uint8_t *result, const uint8_t *rdata, size_t septet_len, uint8_t padding)
+{
+	int i = 0, z = 0;
+	uint8_t cb, nb;
+	int shift = 0;
+	uint8_t *data = malloc(septet_len + 1);
+
+	if (padding) {
+		shift = 7 - padding;
+		/* the first zero is needed for padding */
+		memcpy(data + 1, rdata, septet_len);
+		data[0] = 0x00;
+		septet_len++;
+	} else
+		memcpy(data, rdata, septet_len);
+
+	for (i = 0; i < septet_len; i++) {
+		if (shift == 7) {
+			/*
+			 * special end case with the. This is necessary if the
+			 * last septet fits into the previous octet. E.g. 48
+			 * non-extension characters:
+			 *   ....ag ( a = 1100001, g = 1100111)
+			 * result[40] = 100001 XX, result[41] = 1100111 1 */
+			if (i + 1 < septet_len) {
+				shift = 0;
+				continue;
+			} else if (i + 1 == septet_len)
+				break;
+		}
+
+		cb = (data[i] & 0x7f) >> shift;
+		if (i + 1 < septet_len) {
+			nb = (data[i + 1] & 0x7f) << (7 - shift);
+			cb = cb | nb;
+		}
+
+		result[z++] = cb;
+		shift++;
+	}
+
+	free(data);
+
+	return z;
+}
+
+
+int gsm_7bit_encode_n(uint8_t *result, size_t n, const char *data, int *octets)
+{
+	int y = 0;
+	int o;
+	size_t max_septets = n * 8 / 7;
+
+	/* prepare for the worst case, every character expanding to two bytes */
+	uint8_t *rdata = malloc(strlen(data) * 2);
+	y = gsm_septet_encode(rdata, data);
+
+	if (y > max_septets) {
+		/*
+		 * Limit the number of septets to avoid the generation
+		 * of more than n octets.
+		 */
+		y = max_septets;
+	}
+
+	o = gsm_septet_pack(result, rdata, y, 0);
+
+	if (octets)
+		*octets = o;
+
+	free(rdata);
+
+	/*
+	 * We don't care about the number of octets, because they are not
+	 * unique. E.g.:
+	 *  1.) 46 non-extension characters + 1 extension character
+	 *         => (46 * 7 bit + (1 * (2 * 7 bit))) / 8 bit =  42 octets
+	 *  2.) 47 non-extension characters
+	 *         => (47 * 7 bit) / 8 bit = 41,125 = 42 octets
+	 *  3.) 48 non-extension characters
+	 *         => (48 * 7 bit) / 8 bit = 42 octects
+	 */
+	return y;
+}
+
 uint8_t do_SIB8_NR(rrc_gNB_carrier_data_t *carrier,
                     gNB_RrcConfigurationReq *configuration) {
   asn_enc_rval_t enc_rval;
@@ -322,8 +457,18 @@ uint8_t do_SIB8_NR(rrc_gNB_carrier_data_t *carrier,
 
   const char* alert_text = "ALERT ALERT ALERT! https://exampleMoreWordsToTestLength.com";
   sib8->choice.sib8->warningMessageSegment.size = strlen(alert_text);
-  sib8->choice.sib8->warningMessageSegment.buf = CALLOC(sib8->choice.sib8->warningMessageSegment.size, sizeof(uint8_t));
-  memcpy(sib8->choice.sib8->warningMessageSegment.buf, alert_text, sib8->choice.sib8->warningMessageSegment.size);
+  size_t input_len = strlen(alert_text);
+  size_t max_output_len = (input_len * 7 + 7) / 8; // ~49 bytes for 56 chars
+    
+  // Allocate buffer for GSM 7-bit encoded data
+  sib8->choice.sib8->warningMessageSegment.buf = CALLOC(max_output_len, sizeof(uint8_t));
+  
+  // sib8->choice.sib8->warningMessageSegment.buf = CALLOC(sib8->choice.sib8->warningMessageSegment.size, sizeof(uint8_t));
+  // memcpy(sib8->choice.sib8->warningMessageSegment.buf, alert_text, sib8->choice.sib8->warningMessageSegment.size);
+
+  int size;
+  gsm_7bit_encode_n(sib8->choice.sib8->warningMessageSegment.buf, 128, alert_text, &size);
+  sib8->choice.sib8->warningMessageSegment.size = (size_t)size;
 
   sib8->choice.sib8->dataCodingScheme = CALLOC(1, sizeof(OCTET_STRING_t));
   sib8->choice.sib8->dataCodingScheme->size = 1;
@@ -332,10 +477,10 @@ uint8_t do_SIB8_NR(rrc_gNB_carrier_data_t *carrier,
 
   asn1cSeqAdd(&ies->sib_TypeAndInfo.list, sib8);
 
-  // if(g_log->log_component[NR_RRC].level >= OAILOG_DEBUG)
-  //   xer_fprint(stdout, &asn_DEF_NR_SIB8, (const void *) sib8->choice.sib8);
+  if(g_log->log_component[NR_RRC].level >= OAILOG_DEBUG)
+    xer_fprint(stdout, &asn_DEF_NR_SIB8, (const void *) sib8->choice.sib8);
   
-  print_sib8(sib8->choice.sib8);
+  // print_sib8(sib8->choice.sib8);
   enc_rval = uper_encode_to_buffer(&asn_DEF_NR_BCCH_DL_SCH_Message,
                                    NULL,
                                    (void *)sib_message,
